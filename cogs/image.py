@@ -62,6 +62,12 @@ class Image(WandImage):
 
         return image
 
+    def to_bytes_io(self):
+        bytes_io = BytesIO()
+        self.save(file=bytes_io)
+        bytes_io.seek(0)
+        return bytes_io
+
 
 class Imaging:
 
