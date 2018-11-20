@@ -28,7 +28,7 @@ class Imaging:
             async with cs.get(link) as r:
                 r = await r.read()
         b = BytesIO(r)
-        img = Image(filename=b)
+        img = Image(file=b)
 
         return img, gif
 
