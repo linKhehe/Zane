@@ -172,7 +172,7 @@ class Imaging:
         file = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
-        duration = (end - start) * 1000
+        duration = round((end - start) * 1000, 2)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -206,7 +206,7 @@ class Imaging:
         file = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
-        duration = (end - start) * 1000
+        duration = round((end - start) * 1000, 2)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
