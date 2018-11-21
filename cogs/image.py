@@ -68,6 +68,24 @@ class Image(WandImage):
         bytes_io.seek(0)
         return bytes_io
 
+    def magik(self, multiplier: float = 1.5):
+        if self.animation:
+            for frame in self.sequence:
+                frame.sample(50, 50)
+                frame.resize(int(self.height*0.75), 120)
+                frame.liquid_rescale(
+                    width=int(self.width * 0.4),
+                    height=int(self.height * 0.4),
+                    delta_x=multiplier,
+                    rigidity=0
+                )
+                frame.liquid_rescale(
+                    width=int(self.width * 1.2),
+                    height=int(self.height * 1.2),
+                    delta_x=multiplier,
+                    rigidity=0
+                )
+
 
 class Imaging:
 
