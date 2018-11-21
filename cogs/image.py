@@ -40,6 +40,12 @@ class Image(WandImage):
         bytes_io.seek(0)
         return bytes_io
 
+    def to_discord_file(self, filename: str):
+        bytes_io = self.to_bytes_io()
+        file = discord.File(bytes_io, filename=filename)
+        return file
+
+
 
 class Imaging:
 
@@ -64,7 +70,7 @@ class Imaging:
                     rigidity=0
                 )
                 output.sequence.append(frame)
-            return output
+            return output.to_discord_file("magik.gif")
 
 
 def setup(bot):
