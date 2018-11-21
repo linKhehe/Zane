@@ -34,7 +34,6 @@ class Zane(commands.Bot):
             'zt.',
             'zane '
         ]
-        self.loading_emoji = self.get_emoji(514917324709429344)
         self.color = discord.Color.blue().value
         self.init_time = datetime.datetime.utcnow()
         super().__init__(command_prefix=self.prefix)
@@ -52,6 +51,10 @@ class Zane(commands.Bot):
             await db.execute(f.read())
         print("DB: Setup.sql executed.")
         self.db = db
+
+    @property
+    def loading_emoji(self):
+        return self.get_emoji(514917324709429344)
 
     async def prefix(self, bot, message):
         return commands.when_mentioned_or(*self.prefixes)(bot, message)
