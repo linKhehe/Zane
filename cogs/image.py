@@ -1,5 +1,6 @@
 from io import BytesIO
 import functools
+import time
 
 # the weird import is so i can subclass it without
 # having a weird name for my image class.
