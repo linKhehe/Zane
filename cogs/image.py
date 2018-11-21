@@ -1,13 +1,32 @@
 from io import BytesIO
 import functools
 
+# the weird import is so i can subclass it without
+# having a weird name for my image class.
 from wand.image import Image as WandImage
+from wand.api import library
+from wand.compat import binary
 import aiohttp
 import discord
 from discord.ext import commands
 
 
 class Image(WandImage):
+    """
+    A little custom version of wand.image.Image.
+
+    Adds functionality such as...
+
+        from_link(link)
+            - For creating an image from a link using aiohttp.
+
+        to_bytes_io()
+            - For saving an image to a BytesIO object.
+
+        to_discord_file()
+            - For saving an image to a discord.File object.
+
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,14 +66,19 @@ class Image(WandImage):
         return file
 
 
-
 class Imaging:
+    """
+    This cog adds image manipulation functionality for both GIFs and static images.
+    """
 
     def __init__(self, bot):
         self.bot = bot
 
     @staticmethod
     def _magic_gif(image: Image, multiplier: float = 1.75):
+        # iterate through each frame in the input image
+        # apply content aware scale and append it to the
+        # end of the output image
         with Image() as output:
             for frame in image.sequence:
                 frame.liquid_rescale(
@@ -92,21 +116,26 @@ class Imaging:
 
     @staticmethod
     def _invert_gif(image: Image):
+        # Negate every frame and append it to out
         with Image() as out:
-            for frame in image:
+            for frame in image.sequence:
                 frame.negate()
                 out.sequence.append(frame)
+
             return out.to_discord_file(filename="inverted.gif")
 
     @staticmethod
     def _invert(image: Image):
         image.negate()
+
         return image.to_discord_file(filename="inverted.png")
+
+    # Everything from here on is a command.
+    # Commands are named with _name_command
 
     @commands.command(
         name="magic",
         aliases=[
-            'magic',
             'magick',
             'magik'
         ]
@@ -135,6 +164,31 @@ class Imaging:
             executor = functools.partial(self._magic, image)
 
         # keep in mind that the output of both _magic and _magic_gif are ...
+        # Image.to_discord_file so we can send them right away.
+        file = await self.bot.loop.run_in_executor(None, executor)
+        await ctx.send(file=file)
+
+    @commands.command(
+        name="invert",
+        aliases=[
+            'negate'
+        ]
+    )
+    async def _invert_command(self, ctx, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+
+        avatar_url = member.avatar_url_as(static_format="png", size=256)
+        image = await Image.from_link(avatar_url)
+
+        # check whether or not the avatar is a gif
+        # assign either _invert_gif or _invert depending on image.animation
+        if image.animation:
+            executor = functools.partial(self._invert_gif, image)
+        else:
+            executor = functools.partial(self._magic, image)
+
+        # keep in mind that the output of both _magic and _magic_gif are
         # Image.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
         await ctx.send(file=file)
