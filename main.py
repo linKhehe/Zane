@@ -82,6 +82,7 @@ Discriminator: {self.user.discriminator}
 Guild Count: {len(self.guilds)}
 User Count: {len(list(self.get_all_members()))}""")
         self.loop.create_task(self.set_status())
+        await asyncio.sleep(120)
 
 
 if __name__ == "__main__":

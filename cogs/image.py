@@ -7,36 +7,6 @@ from discord.ext import commands
 
 
 class Image(WandImage):
-    """A custom image object. Added functionality includes from_link...
-
-    :param image: makes an exact copy of the ``image``
-    :type image: :class:`Image`
-    :param blob: opens an image of the ``blob`` byte array
-    :type blob: :class:`bytes`
-    :param file: opens an image of the ``file`` object
-    :type file: file object
-    :param filename: opens an image of the ``filename`` string
-    :type filename: :class:`basestring`
-    :param format: forces filename to  buffer. ``format`` to help
-                   imagemagick detect the file format. Used only in
-                   ``blob`` or ``file`` cases
-    :type format: :class:`basestring`
-    :param width: the width of new blank image or an image loaded from raw
-                  data.
-    :type width: :class:`numbers.Integral`
-    :param height: the height of new blank imgage or an image loaded from
-                   raw data.
-    :type height: :class:`numbers.Integral`
-    :param depth: the depth used when loading raw data.
-    :type depth: :class:`numbers.Integral`
-    :param background: an optional background color.
-                       default is transparent
-    :type background: :class:`wand.color.Color`
-    :param resolution: set a resolution value (dpi),
-                       useful for vectorial formats (like pdf)
-    :type resolution: :class:`collections.Sequence`,
-                      :Class:`numbers.Integral`
-    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -64,33 +34,38 @@ class Image(WandImage):
 
     def to_bytes_io(self):
         bytes_io = BytesIO()
+
+        # save self to the bytes io and seek to the beginning
         self.save(file=bytes_io)
         bytes_io.seek(0)
         return bytes_io
-
-    def magik(self, multiplier: float = 1.5):
-        if self.animation:
-            for frame in self.sequence:
-                frame.sample(50, 50)
-                frame.resize(int(self.height*0.75), 120)
-                frame.liquid_rescale(
-                    width=int(self.width * 0.4),
-                    height=int(self.height * 0.4),
-                    delta_x=multiplier,
-                    rigidity=0
-                )
-                frame.liquid_rescale(
-                    width=int(self.width * 1.2),
-                    height=int(self.height * 1.2),
-                    delta_x=multiplier,
-                    rigidity=0
-                )
 
 
 class Imaging:
 
     def __init__(self, bot):
         self.bot = bot
+
+    @staticmethod
+    def _magic_gif(image: Image, multiplier: float = 1.75):
+        with Image() as output:
+            output.sample(60, 60)
+            for frame in image.sequence:
+                frame.sample(60, 60)
+                frame.liquid_rescale(
+                    width=int(image.width * 0.4),
+                    height=int(image.height * 0.4),
+                    delta_x=multiplier,
+                    rigidity=0
+                )
+                frame.liquid_rescale(
+                    width=int(image.width * 1.2),
+                    height=int(image.height * 1.2),
+                    delta_x=multiplier,
+                    rigidity=0
+                )
+                output.sequence.append(frame)
+            return output.to_bytes_io()
 
 
 def setup(bot):
