@@ -75,7 +75,7 @@ class Imaging:
 
     @staticmethod
     def _magic(image: Image, multiplier: float = 1.75):
-        image.sample(200, 200)
+        image.sample(400, 400)
         image.liquid_rescale(
             width=int(image.width * 0.4),
             height=int(image.height * 0.4),
