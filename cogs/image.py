@@ -64,7 +64,7 @@ class Imaging:
                     rigidity=0
                 )
                 output.sequence.append(frame)
-        return output
+            return output
 
 
 def setup(bot):
