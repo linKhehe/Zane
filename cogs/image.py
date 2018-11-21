@@ -156,7 +156,7 @@ class Imaging:
         if member is None:
             member = ctx.author
 
-        loading_reaction = await ctx.message.add_reaction(self.bot.loading_emoji)
+        await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
 
         avatar_url = member.avatar_url_as(static_format="png", size=256)
@@ -178,7 +178,7 @@ class Imaging:
 
         await ctx.send(f"*{duration}ms*", file=file)
 
-        await ctx.message.remove_reaction(loading_reaction.emoji, ctx.me)
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
     @commands.command(
         name="invert",
@@ -212,7 +212,7 @@ class Imaging:
 
         await ctx.send(f"*{duration}ms*", file=file)
 
-        await ctx.message.remove_reaction(loading_reaction.emoji, ctx.me)
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
 
 def setup(bot):
