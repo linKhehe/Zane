@@ -49,7 +49,6 @@ class Imaging:
     @staticmethod
     def _magic_gif(image: Image, multiplier: float = 1.75):
         with Image() as output:
-            output.sample(60, 60)
             for frame in image.sequence:
                 frame.sample(60, 60)
                 frame.liquid_rescale(
@@ -65,7 +64,7 @@ class Imaging:
                     rigidity=0
                 )
                 output.sequence.append(frame)
-            return output.to_bytes_io()
+        return output
 
 
 def setup(bot):
