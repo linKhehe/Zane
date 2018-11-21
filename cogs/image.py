@@ -56,10 +56,7 @@ class Imaging:
     @staticmethod
     def _magic_gif(image: Image, multiplier: float = 1.75):
         with Image() as output:
-
-            image.sample(200, 200)
             for frame in image.sequence:
-                frame.sample(200, 200)
                 frame.liquid_rescale(
                     width=int(image.width * 0.4),
                     height=int(image.height * 0.4),
@@ -77,9 +74,6 @@ class Imaging:
 
     @staticmethod
     def _magic(image: Image, multiplier: float = 1.75):
-        # resize the image to add some speed
-        image.sample(400, 400)
-
         # overly content-aware-scale it
         image.liquid_rescale(
             width=int(image.width * 0.4),
@@ -130,7 +124,7 @@ class Imaging:
         if member is None:
             member = ctx.author
 
-        avatar_url = member.avatar_url_as(static_format="png")
+        avatar_url = member.avatar_url_as(static_format="png", size=256)
         image = await Image.from_link(avatar_url)
 
         # check whether or not the avatar is a gif
