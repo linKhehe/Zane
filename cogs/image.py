@@ -70,7 +70,24 @@ class Imaging:
                     rigidity=0
                 )
                 output.sequence.append(frame)
-            return output.to_discord_file("magik.gif")
+            return output.to_discord_file("magic.gif")
+
+    @staticmethod
+    def _magic(image: Image, multiplier: float = 1.75):
+        image.sample(60, 60)
+        image.liquid_rescale(
+            width=int(image.width * 0.4),
+            height=int(image.height * 0.4),
+            delta_x=multiplier,
+            rigidity=0
+        )
+        image.liquid_rescale(
+            width=int(image.width * 1.2),
+            height=int(image.height * 1.2),
+            delta_x=multiplier,
+            rigidity=0
+        )
+        return image.to_discord_file("magik.png")
 
 
 def setup(bot):
