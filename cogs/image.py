@@ -186,7 +186,7 @@ class Imaging:
         if image.animation:
             executor = functools.partial(self._invert_gif, image)
         else:
-            executor = functools.partial(self._magic, image)
+            executor = functools.partial(self._invert, image)
 
         # keep in mind that the output of both _magic and _magic_gif are
         # Image.to_discord_file so we can send them right away.

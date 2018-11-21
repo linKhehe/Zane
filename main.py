@@ -8,7 +8,9 @@ try:
     import uvloop
 except ImportError:
     print(
-        "UVLOOP is not installed. If you are on linux, install it with \"pip install uvloop\". If you are on windows, ignore this message.\n")
+        """UvLoop is not installed. If you are on linux, install it with "pip install uvloop".
+        If you are on windows, ignore this message.
+        """)
 else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
