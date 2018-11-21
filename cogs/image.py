@@ -55,8 +55,9 @@ class Imaging:
     @staticmethod
     def _magic_gif(image: Image, multiplier: float = 1.75):
         with Image() as output:
+            image.sample(200, 200)
             for frame in image.sequence:
-                frame.sample(60, 60)
+                frame.sample(200, 200)
                 frame.liquid_rescale(
                     width=int(image.width * 0.4),
                     height=int(image.height * 0.4),
@@ -74,7 +75,7 @@ class Imaging:
 
     @staticmethod
     def _magic(image: Image, multiplier: float = 1.75):
-        image.sample(60, 60)
+        image.sample(200, 200)
         image.liquid_rescale(
             width=int(image.width * 0.4),
             height=int(image.height * 0.4),
