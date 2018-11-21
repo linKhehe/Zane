@@ -56,6 +56,7 @@ class Imaging:
     @staticmethod
     def _magic_gif(image: Image, multiplier: float = 1.75):
         with Image() as output:
+
             image.sample(200, 200)
             for frame in image.sequence:
                 frame.sample(200, 200)
@@ -76,7 +77,10 @@ class Imaging:
 
     @staticmethod
     def _magic(image: Image, multiplier: float = 1.75):
+        # resize the image to add some speed
         image.sample(400, 400)
+
+        # overly content-aware-scale it
         image.liquid_rescale(
             width=int(image.width * 0.4),
             height=int(image.height * 0.4),
@@ -89,7 +93,21 @@ class Imaging:
             delta_x=multiplier,
             rigidity=0
         )
+
         return image.to_discord_file("magik.png")
+
+    @staticmethod
+    def _invert_gif(image: Image):
+        with Image() as out:
+            for frame in image:
+                frame.negate()
+                out.sequence.append(frame)
+            return out.to_discord_file(filename="inverted.gif")
+
+    @staticmethod
+    def _invert(image: Image):
+        image.negate()
+        return image.to_discord_file(filename="inverted.png")
 
     @commands.command(
         name="magic",
@@ -115,14 +133,18 @@ class Imaging:
         avatar_url = member.avatar_url_as(static_format="png")
         image = await Image.from_link(avatar_url)
 
+        # check whether or not the avatar is a gif
+        # assign either _magic_gif or _magic depending on image.animation
         if image.animation:
             executor = functools.partial(self._magic_gif, image)
         else:
             executor = functools.partial(self._magic, image)
 
+        # keep in mind that the output of both _magic and _magic_gif are ...
+        # Image.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
-
         await ctx.send(file=file)
+
 
 def setup(bot):
     bot.add_cog(Imaging(bot))
