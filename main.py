@@ -34,6 +34,7 @@ class Zane(commands.Bot):
             'zt.',
             'zane '
         ]
+        self.loading_emoji = self.get_emoji(514917324709429344)
         self.color = discord.Color.blue().value
         self.init_time = datetime.datetime.utcnow()
         super().__init__(command_prefix=self.prefix)

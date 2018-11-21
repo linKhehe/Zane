@@ -153,6 +153,9 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        loading_reaction = await ctx.message.add_reaction(self.bot.loading_emoji)
+        start = time.perf_counter()
+
         avatar_url = member.avatar_url_as(static_format="png", size=256)
         image = await Image.from_link(avatar_url)
 
@@ -166,7 +169,13 @@ class Imaging:
         # keep in mind that the output of both _magic and _magic_gif are ...
         # Image.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
-        await ctx.send(file=file)
+
+        end = time.perf_counter()
+        duration = (end - start) * 1000
+
+        await ctx.send(f"*{duration}ms*", file=file)
+
+        await ctx.message.remove_reaction(str(loading_reaction), ctx.me)
 
     @commands.command(
         name="invert",
@@ -177,6 +186,9 @@ class Imaging:
     async def _invert_command(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
+
+        loading_reaction = await ctx.message.add_reaction(self.bot.loading_emoji)
+        start = time.perf_counter()
 
         avatar_url = member.avatar_url_as(static_format="png", size=256)
         image = await Image.from_link(avatar_url)
@@ -191,7 +203,13 @@ class Imaging:
         # keep in mind that the output of both _magic and _magic_gif are
         # Image.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
-        await ctx.send(file=file)
+
+        end = time.perf_counter()
+        duration = (end - start) * 1000
+
+        await ctx.send(f"*{duration}ms*", file=file)
+
+        await ctx.message.remove_reaction(str(loading_reaction), ctx.me)
 
 
 def setup(bot):
