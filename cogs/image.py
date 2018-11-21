@@ -113,6 +113,8 @@ class Imaging:
             rigidity=0
         )
 
+        image.sample(256, 256)
+
         return image.to_discord_file("magik.png")
 
     @staticmethod
@@ -176,7 +178,7 @@ class Imaging:
 
         await ctx.send(f"*{duration}ms*", file=file)
 
-        await ctx.message.remove_reaction(str(loading_reaction), ctx.me)
+        await ctx.message.remove_reaction(loading_reaction.emoji, ctx.me)
 
     @commands.command(
         name="invert",
@@ -210,7 +212,7 @@ class Imaging:
 
         await ctx.send(f"*{duration}ms*", file=file)
 
-        await ctx.message.remove_reaction(str(loading_reaction), ctx.me)
+        await ctx.message.remove_reaction(loading_reaction.emoji, ctx.me)
 
 
 def setup(bot):
