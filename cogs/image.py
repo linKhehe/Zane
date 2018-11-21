@@ -1,4 +1,5 @@
 from io import BytesIO
+import functools
 
 from wand.image import Image as WandImage
 import aiohttp
@@ -90,6 +91,38 @@ class Imaging:
         )
         return image.to_discord_file("magik.png")
 
+    @commands.command(
+        name="magic",
+        aliases=[
+            'magic',
+            'magick',
+            'magik'
+        ]
+    )
+    @commands.cooldown(
+        rate=1,
+        per=20,
+        type=commands.BucketType.user
+    )
+    async def _magic_command(self, ctx, member: discord.Member = None, multiplier: float = 1.75):
+        if multiplier > 15 or multiplier < 0:
+            # TODO: Raise custom error
+            return True
+
+        if member is None:
+            member = ctx.author
+
+        avatar_url = member.avatar_url_as(static_format="png")
+        image = await Image.from_link(avatar_url)
+
+        if image.animation:
+            executor = functools.partial(self._magic_gif, image)
+        else:
+            executor = functools.partial(self._magic, image)
+
+        file = await self.bot.loop.run_in_executor(None, executor)
+
+        await ctx.send(file=file)
 
 def setup(bot):
     bot.add_cog(Imaging(bot))
