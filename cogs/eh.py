@@ -1,6 +1,6 @@
 import sys
 import traceback
-from datetime import datetime
+import datetime
 
 import humanize
 import discord
