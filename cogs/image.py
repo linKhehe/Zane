@@ -285,7 +285,7 @@ class Imaging:
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
 
-        await ctx.send(f"*{duration}ms*", file=file)
+        await ctx.send(f"*{duration}ms*\n{ascii}")
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
