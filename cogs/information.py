@@ -18,7 +18,9 @@ class Information:
             'userinfo'
         ]
     )
-    async def userinfo(self, ctx, member: discord.Member = None):
+    async def _user_info_command(self, ctx, member: discord.Member = None):
+        """List stats on the user provided.
+        If the user parameter is not fulfilled, it will select you."""
         if member is None:
             member = ctx.author
 
@@ -76,7 +78,8 @@ class Information:
             'guildinfo'
         ]
     )
-    async def guildinfo(self, ctx):
+    async def _guild_info_command(self, ctx):
+        """Lists info on the current guild."""
         guild = ctx.guild
         e = discord.Embed(
             title=f"Guild: {guild.name}",
@@ -130,7 +133,7 @@ class Information:
             "ne"
         ]
     )
-    async def stats(self, ctx):
+    async def _stats_command(self, ctx):
         """List current stats on the bot."""
         members = 0
         roles = 0
@@ -182,7 +185,7 @@ class Information:
             url=self.bot.user.avatar_url_as(static_format="png")
         )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=e)
 
 
 def setup(bot):
