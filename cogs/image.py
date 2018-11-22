@@ -92,7 +92,7 @@ class Imaging:
         image.liquid_rescale(
             width=int(image.width * 1.3),
             height=int(image.height * 1.3),
-            delta_x=multiplier,
+            delta_x=1.75,
             rigidity=0
         )
 

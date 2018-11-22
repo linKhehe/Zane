@@ -121,27 +121,25 @@ class Information:
 
         await ctx.send(embed=e)
 
-    @commands.command(name="stats", aliases=["info", "botinfo"])
+    @commands.command(
+        name="stats",
+        aliases=[
+            "info",
+            "botinfo",
+            "stats",
+            "ne"
+        ]
+    )
     async def stats(self, ctx):
-        """Get stats on the discord bot."""
-        start = time.perf_counter()
-        msg = await ctx.send("_ _")
-        end = time.perf_counter()
-        duration1 = (end - start) * 1000
-        start = time.perf_counter()
-        await msg.delete()
-        end = time.perf_counter()
-        duration2 = (end - start) * 1000
-        duration = (duration1 + duration2) / 2
-
+        """List current stats on the bot."""
         members = 0
         roles = 0
-        textchannels = 0
+        text_channels = 0
 
         for g in self.bot.guilds:
             members += g.member_count
             roles += len(g.roles)
-            textchannels += len(g.text_channels)
+            text_channels += len(g.text_channels)
 
         e = discord.Embed(
             title=f"{self.bot.user.name} Info",
@@ -166,11 +164,11 @@ class Information:
         )
         e.add_field(
             name="Text Channels",
-            value=textchannels
+            value=text_channels
         )
         e.add_field(
             name="Ping",
-            value=f"{round(duration, 2)}ms"
+            value=f"{round(bot.latency, 2)}ms"
         )
         e.add_field(
             name="CPU Usage",
