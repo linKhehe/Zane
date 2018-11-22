@@ -115,7 +115,7 @@ class Imaging:
         self.bot = bot
 
     @staticmethod
-    def _ascii(image: Image, inverted: Bool = False):
+    def _ascii(image: Image, inverted: bool = False):
         """
         Convert an image into a string of
         :param Image:
