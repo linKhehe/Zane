@@ -1,5 +1,6 @@
 import sys
 import traceback
+from datetime import datetime
 
 import humanize
 import discord
@@ -18,9 +19,14 @@ class ErrorHandler:
 
         exception = getattr(exception, 'original', exception)
 
+        if isinstance(exception, self.ignored):
+            pass
+
         if isinstance(exception, commands.CommandOnCooldown):
             try:
-                await ctx.send(f"You are on a cooldown. You can retry in {humanize.naturaltime(exception.retry_after)}.")
+                retry_after = datetime.timedelta(seconds=exception.retry_after)
+                retry_after = humanize.naturaltime(datetime.utcnow() - retry_after)
+                await ctx.send(f"You are on a cooldown. You can retry in {retry_after}.")
             except discord.Forbidden:
                 pass
 
@@ -51,7 +57,7 @@ class ErrorHandler:
         ctx.command.reset_cooldown(ctx)
 
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+        traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
 
 def setup(bot):
