@@ -125,14 +125,12 @@ class Imaging:
             for row in image:
                 ascii = ascii + "\n"
                 for col in row:
-                    assert (col, Color)
-                    ascii += col.ascii_character
+                    with Color(col) as c:
+                        ascii += c.ascii_character
 
         ascii += "```"
 
         return ascii
-
-
 
     @staticmethod
     def _magic(image: Image):
