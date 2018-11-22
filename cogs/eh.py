@@ -25,7 +25,7 @@ class ErrorHandler:
         if isinstance(exception, commands.CommandOnCooldown):
             try:
                 retry_after = datetime.timedelta(seconds=exception.retry_after)
-                retry_after = humanize.naturaltime(datetime.datetime.utcnow() - retry_after)
+                retry_after = humanize.naturaltime(datetime.datetime.now() - retry_after)
                 await ctx.send(f"You are on a cooldown. You can retry in {retry_after}.")
             except discord.Forbidden:
                 pass
