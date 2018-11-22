@@ -25,8 +25,8 @@ class Color(WandColor):
             250: "@",
             200: "#",
             150: "+",
-            100: ";",
-            50: "-",
+            100: "-",
+            50: "`",
             0: " "
         }
         super().__init__(*args, **kwargs)
@@ -118,22 +118,22 @@ class Imaging:
         """
         Convert an image into a string of
         :param Image:
-        :return discord.File:
+        :return str:
         """
-        image.resize(60, 30)
+        image.resize(62, 31)
 
-        ascii = "```"
+        ascii_art = "```"
 
         with Image(blob=image.make_blob()) as output:
             for row in image:
-                ascii = ascii + "\n"
+                ascii_art += "\n"
                 for col in row:
                     with Color(str(col)) as c:
-                        ascii += c.ascii_character
+                        ascii_art += c.ascii_character
 
-        ascii += "```"
+        ascii_art += "```"
 
-        return ascii
+        return ascii_art
 
     @staticmethod
     def _magic(image: Image):
