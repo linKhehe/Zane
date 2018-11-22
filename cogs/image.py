@@ -278,6 +278,7 @@ class Imaging:
         Optional Flags:
             -i , --invert Invert the image.
             -b=100, --brightness=100 Change the brightness of the starting image.
+            -s=62, --size=62 Change the size of the ascii art. Min is 2 max is 62.
         """
         if member is None:
             member = ctx.author
@@ -308,7 +309,7 @@ class Imaging:
                 except TypeError:
                     raise commands.BadArgument("Invalid flag passed.")
 
-        # SPAGHETTI CODE ATTACH OVER #
+        # SPAGHETTI CODE OVER #
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
