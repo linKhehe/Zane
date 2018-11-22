@@ -263,27 +263,16 @@ class Imaging:
             "asciiart"
         ]
     )
-    async def _ascii_command(self, ctx, *member: discord.Member):
+    async def _ascii_command(self, ctx, member: discord.Member = None, *flags: str):
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
         """
-        if member is []:
-            member = [ctx.author]
+        if member is None:
+            member = ctx.author
 
-        try:
-            opts, member = getopt.gnu_getopt(member, 'i', ('invert',))
-        except getopt.GetoptError:
-            opts = []
-
-        if len(member) != 1:
-            raise commands.BadArgument
-
-        member = member[0]
-        opts = frozenset(dict(opts))
-
-        invert = false
-        if '-i' or '--invert' in opts:
+        invert = False
+        if '--invert' in flags or '-i' in flags:
             invert = True
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
