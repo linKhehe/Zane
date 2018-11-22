@@ -1,6 +1,7 @@
 from io import BytesIO
 import functools
 import time
+import getopt
 
 # the weird import is so i can subclass it without
 # having a weird name for my image class.
@@ -114,13 +115,15 @@ class Imaging:
         self.bot = bot
 
     @staticmethod
-    def _ascii(image: Image):
+    def _ascii(image: Image, inverted: Bool = False):
         """
         Convert an image into a string of
         :param Image:
         :return str:
         """
         image.resize(62, 31)
+        if inverted:
+            image.negate()
 
         ascii_art = "```"
 
@@ -260,13 +263,28 @@ class Imaging:
             "asciiart"
         ]
     )
-    async def _ascii_command(self, ctx, member: discord.Member = None):
+    async def _ascii_command(self, ctx, *member: discord.Member):
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
         """
-        if member is None:
-            member = ctx.author
+        if member is []:
+            member = [ctx.author]
+
+        try:
+            opts, member = getopt.gnu_getopt(member, 'i', ('invert',))
+        except getopt.GetoptError:
+            opts = []
+
+        if len(member) != 1:
+            raise commands.BadArgument
+
+        member = member[0]
+        opts = frozenset(dict(opts))
+
+        invert = false
+        if '-i' or '--invert' in opts:
+            invert = True
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
@@ -276,7 +294,7 @@ class Imaging:
 
         # check whether or not the avatar is a gif
         # assign either _invert_gif or _invert depending on image.animation
-        executor = functools.partial(self._ascii, image)
+        executor = functools.partial(self._ascii, image, invert)
 
         # keep in mind that the output of _magic is ...
         # Image.to_discord_file so we can send them right away.
