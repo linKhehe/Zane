@@ -125,7 +125,7 @@ class Imaging:
             for row in image:
                 ascii = ascii + "\n"
                 for col in row:
-                    with Color(col) as c:
+                    with Color(str(col)) as c:
                         ascii += c.ascii_character
 
         ascii += "```"
