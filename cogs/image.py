@@ -16,7 +16,7 @@ from discord.ext import commands
 
 class Color(WandColor):
     """
-    A little custom version of wand.color.Color
+    A little subclass of wand.color.Color
 
     Adds functionality for ascii art.
     """
@@ -115,15 +115,20 @@ class Imaging:
         self.bot = bot
 
     @staticmethod
-    def _ascii(image: Image, inverted: bool = False):
+    def _ascii(image: Image, inverted: bool = False, brightness: int = 100):
         """
-        Convert an image into a string of
-        :param Image:
-        :return str:
+        Converts image into an ascii art string.
+
+        :param image: The :class Image: to convert to ascii.
+        :param inverted: A :type bool: determining whether or not to invert.
+        :param brightness: A :type int: determining the brightness.
+        :return: A :type str: containing the art.
         """
         image.resize(62, 31)
         if inverted:
             image.negate()
+        if brightness is not 100:
+            image.modulate(brightness=brightness)
 
         ascii_art = "```"
 
@@ -267,13 +272,28 @@ class Imaging:
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
+
+        Optional Flags:
+            -i, --invert
         """
         if member is None:
             member = ctx.author
 
         invert = False
-        if '--invert' in flags or '-i' in flags:
-            invert = True
+        brightness = 100
+        # check for the args using the worst method possible... who cares /shrug
+        for flag in flags:
+            if flag is '-i' or flag is '--invert':
+                invert = True
+            if flag.startswith('-b=') or flag.startswith('--brightness='):
+                try:
+                    brightness = int(flag.split("=")[1])
+                    if brightness > 200 or brightness < 0:
+                        # TODO: custom error here
+                        raise commands.BadArgument
+                except TypeError:
+                    # TODO: Custom error here
+                    raise commands.BadArgument
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
@@ -281,12 +301,7 @@ class Imaging:
         avatar_url = member.avatar_url_as(format="png", size=256)
         image = await Image.from_link(avatar_url)
 
-        # check whether or not the avatar is a gif
-        # assign either _invert_gif or _invert depending on image.animation
-        executor = functools.partial(self._ascii, image, invert)
-
-        # keep in mind that the output of _magic is ...
-        # Image.to_discord_file so we can send them right away.
+        executor = functools.partial(self._ascii, image, invert, brightness)
         ascii_art = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
