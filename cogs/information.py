@@ -1,3 +1,6 @@
+import time
+
+import psutil
 import discord
 from discord.ext import commands
 
@@ -96,6 +99,92 @@ class Information:
             name="Guild Created At",
             value=guild.created_at
         )
+        e.add_field(
+            name="Member Count",
+            value=guild.member_count
+        )
+        e.add_field(
+            name="Roles",
+            value=str(len(guild.roles))
+        )
+        e.add_field(
+            name="Emotes",
+            value=str(len(guild.emojis))
+        )
+        e.add_field(
+            name="Text/Voice Channels",
+            value=str(len(guild.text_channels)+len(guild.voice_channels))
+        )
+        e.set_thumbnail(
+            url=guild.icon_url
+        )
+
+        await ctx.send(embed=e)
+
+    @commands.command(name="stats", aliases=["info", "botinfo"])
+    async def stats(self, ctx):
+        """Get stats on the discord bot."""
+        start = time.perf_counter()
+        msg = await ctx.send("_ _")
+        end = time.perf_counter()
+        duration1 = (end - start) * 1000
+        start = time.perf_counter()
+        await msg.delete()
+        end = time.perf_counter()
+        duration2 = (end - start) * 1000
+        duration = (duration1 + duration2) / 2
+
+        members = 0
+        roles = 0
+        textchannels = 0
+
+        for g in self.bot.guilds:
+            members += g.member_count
+            roles += len(g.roles)
+            textchannels += len(g.text_channels)
+
+        e = discord.Embed(
+            title=f"{self.bot.user.name} Info",
+            description="Don't worry, I know I am a cutie.",
+            color=self.bot.color
+        )
+        e.add_field(
+            name="Creator",
+            value=self.bot.app_info.owner.mention
+        )
+        e.add_field(
+            name="Guilds",
+            value=str(len(self.bot.guilds))
+        )
+        e.add_field(
+            name="Members",
+            value=members
+        )
+        e.add_field(
+            name="Roles",
+            value=roles
+        )
+        e.add_field(
+            name="Text Channels",
+            value=textchannels
+        )
+        e.add_field(
+            name="Ping",
+            value=f"{round(duration, 2)}ms"
+        )
+        e.add_field(
+            name="CPU Usage",
+            value=str(psutil.cpu_percent(interval=None)) + "%"
+        )
+        e.add_field(
+            name="RAM Usage",
+            value=str(psutil.virtual_memory().percent) + "%"
+        )
+        e.set_thumbnail(
+            url=self.bot.user.avatar_url_as(static_format="png")
+        )
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

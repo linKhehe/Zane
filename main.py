@@ -22,7 +22,7 @@ This is a bot made by ir3#333.
 """
 
 
-class Zane(commands.Bot):
+class Zane(commands.AutoShardedBot):
 
     def __init__(self):
         self.bot_cogs = [
@@ -60,7 +60,6 @@ class Zane(commands.Bot):
         return commands.when_mentioned_or(*self.prefixes)(bot, message)
 
     def run(self, token: str):
-        self.remove_command('help')
         for cog in self.bot_cogs:
             try:
                 self.load_extension(cog)

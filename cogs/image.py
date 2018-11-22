@@ -75,40 +75,23 @@ class Imaging:
     def __init__(self, bot):
         self.bot = bot
 
-    # @staticmethod
-    # def _magic_gif(image: Image, multiplier: float = 1.75):
-    #     # iterate through each frame in the input image
-    #     # apply content aware scale and append it to the
-    #     # end of the output image
-    #     with Image() as output:
-    #         for frame in image.sequence:
-    #             frame.liquid_rescale(
-    #                 width=int(image.width * 0.4),
-    #                 height=int(image.height * 0.4),
-    #                 delta_x=multiplier,
-    #                 rigidity=0
-    #             )
-    #             frame.liquid_rescale(
-    #                 width=int(image.width * 1.2),
-    #                 height=int(image.height * 1.2),
-    #                 delta_x=multiplier,
-    #                 rigidity=0
-    #             )
-    #             output.sequence.append(frame)
-    #         return output.to_discord_file("magic.gif")
-
     @staticmethod
-    def _magic(image: Image, multiplier: float = 1.75):
+    def _magic(image: Image):
+        """
+        Content aware scale an image. Made for use with _magic_command.
+        :param Image:
+        :return discord.File:
+        """
         # overly content-aware-scale it
         image.liquid_rescale(
-            width=int(image.width * 0.4),
-            height=int(image.height * 0.4),
-            delta_x=multiplier,
+            width=int(image.width * 0.3),
+            height=int(image.height * 0.3),
+            delta_x=1.75,
             rigidity=0
         )
         image.liquid_rescale(
-            width=int(image.width * 1.2),
-            height=int(image.height * 1.2),
+            width=int(image.width * 1.3),
+            height=int(image.height * 1.3),
             delta_x=multiplier,
             rigidity=0
         )
@@ -117,18 +100,13 @@ class Imaging:
 
         return image.to_discord_file("magik.png")
 
-    # @staticmethod
-    # def _invert_gif(image: Image):
-    #     # Negate every frame and append it to out
-    #     with Image() as out:
-    #         for frame in image.sequence:
-    #             frame.negate()
-    #             out.sequence.append(frame)
-    #
-    #         return out.to_discord_file(filename="inverted.gif")
-
     @staticmethod
     def _invert(image: Image):
+        """
+        Invert an image. Made for use with _invert_command.
+        :param Image:
+        :return discord.File:
+        """
         image.negate()
 
         return image.to_discord_file(filename="inverted.png")
@@ -148,11 +126,11 @@ class Imaging:
         per=20,
         type=commands.BucketType.user
     )
-    async def _magic_command(self, ctx, member: discord.Member = None, multiplier: float = 1.75):
-        if multiplier > 15 or multiplier < 0:
-            # TODO: Raise custom error
-            return True
-
+    async def _magic_command(self, ctx, member: discord.Member = None):
+        """
+        Content aware scale, also known as magic, a member's profile picture.
+        If the member parameter is not fulfilled, the selected member will be you.
+        """
         if member is None:
             member = ctx.author
 
@@ -181,7 +159,16 @@ class Imaging:
             'negate'
         ]
     )
+    @commands.cooldown(
+        rate=1,
+        per=6,
+        type=commands.BucketType.user
+    )
     async def _invert_command(self, ctx, member: discord.Member = None):
+        """
+        Invert a member's profile picture.
+        If the member parameter is not fulfilled, the selected member will be you.
+        """
         if member is None:
             member = ctx.author
 
