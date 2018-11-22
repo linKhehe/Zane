@@ -26,7 +26,7 @@ class ErrorHandler:
             try:
                 retry_after = datetime.timedelta(seconds=exception.retry_after)
                 retry_after = humanize.naturaltime(datetime.datetime.now() + retry_after)
-                await ctx.send(f"You are on a cooldown. You can retry in {retry_after}.")
+                return await ctx.send(f"You are on a cooldown. You can retry in {retry_after}.")
             except discord.Forbidden:
                 pass
 
@@ -40,17 +40,17 @@ class ErrorHandler:
         if isinstance(exception, commands.NotOwner):
             ctx.command.reset_cooldown(ctx)
             try:
-                await ctx.message.add_reaction("❌")
+                return await ctx.message.add_reaction("❌")
             except discord.Forbidden:
                 try:
-                    await ctx.send("This command is owner only.")
+                    return await ctx.send("This command is owner only.")
                 except discord.Forbidden:
                     pass
 
         if isinstance(exception, commands.MissingPermissions):
             ctx.command.reset_cooldown(ctx)
             try:
-                await ctx.send(str(exception))
+                return await ctx.send(str(exception))
             except discord.Forbidden:
                 pass
 
