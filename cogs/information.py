@@ -168,7 +168,7 @@ class Information:
         )
         e.add_field(
             name="Ping",
-            value=f"{round(bot.latency, 2)}ms"
+            value=f"{round(self.bot.latency, 2)}ms"
         )
         e.add_field(
             name="CPU Usage",
