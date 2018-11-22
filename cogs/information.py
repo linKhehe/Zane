@@ -126,7 +126,7 @@ class Information:
         aliases=[
             "info",
             "botinfo",
-            "stats",
+            "botstats",
             "ne"
         ]
     )
