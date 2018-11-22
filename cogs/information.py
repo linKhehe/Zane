@@ -19,7 +19,7 @@ class Information:
         ]
     )
     async def _user_info_command(self, ctx, member: discord.Member = None):
-        """List stats on the user provided.
+        """Lists stats on the user provided.
         If the user parameter is not fulfilled, it will select you."""
         if member is None:
             member = ctx.author
@@ -134,7 +134,7 @@ class Information:
         ]
     )
     async def _stats_command(self, ctx):
-        """List current stats on the bot."""
+        """Lists current stats on the bot."""
         members = 0
         roles = 0
         text_channels = 0
