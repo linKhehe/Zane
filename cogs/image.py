@@ -26,7 +26,8 @@ class Color(WandColor):
             200: "#",
             150: "+",
             100: ";",
-            50: "-"
+            50: "-",
+            0: " "
         }
         super().__init__(*args, **kwargs)
 
@@ -43,8 +44,10 @@ class Color(WandColor):
             return self.ascii_characters[150]
         elif value > 100:
             return self.ascii_characters[100]
-        else:
+        elif value > 50:
             return self.ascii_characters[50]
+        else:
+            return self.ascii_characters[0]
 
 
 class Image(WandImage):
