@@ -129,7 +129,7 @@ class Imaging:
             size = 62
         if size < 0:
             size = 2
-        size = math.ceil(size / 2.) * 2
+        size = int(math.ceil(size / 2.) * 2)
 
         image.sample(size, size / 2)
 
