@@ -274,7 +274,8 @@ class Imaging:
         If the member parameter is not fulfilled, it will select you.
 
         Optional Flags:
-            -i, --invert
+            -i , --invert Invert the image.
+            -b=100, --brightness=100 Change the brightness of the starting image.
         """
         if member is None:
             member = ctx.author
@@ -283,7 +284,7 @@ class Imaging:
         brightness = 100
         # check for the args using the worst method possible... who cares /shrug
         for flag in flags:
-            if flag is '-i' or flag is '--invert':
+            if flag == '-i' or flag == '--invert':
                 invert = True
             if flag.startswith('-b=') or flag.startswith('--brightness='):
                 try:
