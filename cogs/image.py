@@ -122,7 +122,7 @@ class Imaging:
         """
         image.resize(60, 30)
 
-        ascii = "```py"
+        ascii = "```fix"
 
         with Image(blob=image.make_blob()) as output:
             for row in image:
