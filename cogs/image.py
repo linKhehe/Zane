@@ -253,6 +253,42 @@ class Imaging:
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
+    @commands.command(
+        name="ascii",
+        aliases=[
+            "asciify",
+            "asciiart"
+        ]
+    )
+    async def _ascii_command(self, member: discord.Member = None):
+        """
+        Convert a member's avatar into ascii art.
+        If the member parameter is not fulfilled, it will select you.
+        """
+        if member is None:
+            member = ctx.author
+
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+        start = time.perf_counter()
+
+        avatar_url = member.avatar_url_as(format="png", size=256)
+        image = await Image.from_link(avatar_url)
+
+        # check whether or not the avatar is a gif
+        # assign either _invert_gif or _invert depending on image.animation
+        executor = functools.partial(self._ascii, image)
+
+        # keep in mind that the output of _magic is ...
+        # Image.to_discord_file so we can send them right away.
+        file = await self.bot.loop.run_in_executor(None, executor)
+
+        end = time.perf_counter()
+        duration = round((end - start) * 1000, 2)
+
+        await ctx.send(f"*{duration}ms*", file=file)
+
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
 
 def setup(bot):
     bot.add_cog(Imaging(bot))
