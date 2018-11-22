@@ -1,5 +1,3 @@
-import time
-
 import psutil
 import discord
 from discord.ext import commands

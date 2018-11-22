@@ -1,17 +1,13 @@
 from io import BytesIO
 import functools
 import time
-import getopt
+import math
 
-# the weird import is so i can subclass it without
-# having a weird name for my image class.
 from wand.image import Image as WandImage
 from wand.color import Color as WandColor
-from wand.api import library
-from wand.compat import binary
+from discord.ext import commands
 import aiohttp
 import discord
-from discord.ext import commands
 
 
 class Color(WandColor):
@@ -115,29 +111,35 @@ class Imaging:
         self.bot = bot
 
     @staticmethod
-    def _ascii(image: Image, inverted: bool = False, brightness: int = 100):
+    def _ascii(image: Image, inverted: bool = False, brightness: int = 100, size: int = 62):
         """
         Converts image into an ascii art string.
 
         :param image: The :class Image: to convert to ascii.
         :param inverted: A :type bool: determining whether or not to invert.
         :param brightness: A :type int: determining the brightness.
+        :param size: A :type int: determining the size.
         :return: A :type str: containing the art.
         """
-        image.resize(62, 31)
         if inverted:
             image.negate()
         if brightness is not 100:
             image.modulate(brightness=brightness)
+        if size > 62:
+            size = 62
+        if size < 0:
+            size = 2
+        size = math.ceil(size / 2.) * 2
+
+        image.sample(size, size / 2)
 
         ascii_art = "```"
 
-        with Image(blob=image.make_blob()) as output:
-            for row in image:
-                ascii_art += "\n"
-                for col in row:
-                    with Color(str(col)) as c:
-                        ascii_art += c.ascii_character
+        for row in image:
+            ascii_art += "\n"
+            for col in row:
+                with Color(str(col)) as c:
+                    ascii_art += c.ascii_character
 
         ascii_art += "```"
 
@@ -282,7 +284,12 @@ class Imaging:
 
         invert = False
         brightness = 100
+        size = 62
         # check for the args using the worst method possible... who cares /shrug
+
+        # WARNING #
+        # SPAGHETTI CODE INBOUND #
+
         for flag in flags:
             if flag == '-i' or flag == '--invert':
                 invert = True
@@ -290,11 +297,18 @@ class Imaging:
                 try:
                     brightness = int(flag.split("=")[1])
                     if brightness > 200 or brightness < 0:
-                        # TODO: custom error here
-                        raise commands.BadArgument
+                        raise commands.BadArgument("Invalid flag passed.")
                 except TypeError:
-                    # TODO: Custom error here
-                    raise commands.BadArgument
+                    raise commands.BadArgument("Invalid flag passed.")
+            if flag.startswith('-s') or flag.startswith('--size'):
+                try:
+                    size = int(flag.split("=")[1])
+                    if size > 62 or size < 0:
+                        raise commands.BadArgument("Invalid flag passed.")
+                except TypeError:
+                    raise commands.BadArgument("Invalid flag passed.")
+
+        # SPAGHETTI CODE ATTACH OVER #
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
@@ -302,7 +316,7 @@ class Imaging:
         avatar_url = member.avatar_url_as(format="png", size=256)
         image = await Image.from_link(avatar_url)
 
-        executor = functools.partial(self._ascii, image, invert, brightness)
+        executor = functools.partial(self._ascii, image, invert, brightness, size)
         ascii_art = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
