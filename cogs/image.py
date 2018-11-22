@@ -279,6 +279,9 @@ class Imaging:
             -i , --invert Invert the image.
             -b=100, --brightness=100 Change the brightness of the starting image.
             -s=62, --size=62 Change the size of the ascii art. Min is 2 max is 62.
+
+        Example Flag Usage:
+            ascii [member] -i --brightness=100 -s=62
         """
         if member is None:
             member = ctx.author
