@@ -260,7 +260,7 @@ class Imaging:
             "asciiart"
         ]
     )
-    async def _ascii_command(self, member: discord.Member = None):
+    async def _ascii_command(self, ctx, member: discord.Member = None):
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
