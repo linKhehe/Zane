@@ -131,7 +131,7 @@ class Imaging:
             size = 2
         size = int(math.ceil(size / 2.) * 2)
 
-        image.sample(size, size / 2)
+        image.sample(size, int(size / 2))
 
         ascii_art = "```"
 
