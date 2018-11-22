@@ -280,12 +280,12 @@ class Imaging:
 
         # keep in mind that the output of _magic is ...
         # Image.to_discord_file so we can send them right away.
-        file = await self.bot.loop.run_in_executor(None, executor)
+        ascii_art = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
 
-        await ctx.send(f"*{duration}ms*\n{ascii}")
+        await ctx.send(f"*{duration}ms*\n{ascii_art}")
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
