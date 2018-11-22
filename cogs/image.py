@@ -5,11 +5,46 @@ import time
 # the weird import is so i can subclass it without
 # having a weird name for my image class.
 from wand.image import Image as WandImage
+from wand.color import Color as WandColor
 from wand.api import library
 from wand.compat import binary
 import aiohttp
 import discord
 from discord.ext import commands
+
+
+class Color(WandColor):
+    """
+    A little custom version of wand.color.Color
+
+    Adds functionality for ascii art.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.ascii_characters = {
+            250: "@",
+            200: "#",
+            150: "+",
+            100: ";",
+            50: "-"
+        }
+        super().__init__(*args, **kwargs)
+
+    @property
+    def ascii_character(self):
+        value = self.red + self.green + self.blue
+        value *= 100
+
+        if value > 250:
+            return self.ascii_characters[250]
+        elif value > 200:
+            return self.ascii_characters[200]
+        elif value > 150:
+            return self.ascii_characters[150]
+        elif value > 100:
+            return self.ascii_characters[100]
+        else:
+            return self.ascii_characters[50]
 
 
 class Image(WandImage):
@@ -74,6 +109,30 @@ class Imaging:
 
     def __init__(self, bot):
         self.bot = bot
+
+    @staticmethod
+    def _ascii(image: Image):
+        """
+        Convert an image into a string of
+        :param Image:
+        :return discord.File:
+        """
+        image.resize(60, 30)
+
+        ascii = "```py"
+
+        with Image(blob=image.make_blob()) as output:
+            for row in image:
+                ascii = ascii + "\n"
+                for col in row:
+                    assert (col, Color)
+                    ascii += col.ascii_character
+
+        ascii += "```"
+
+        return ascii
+
+
 
     @staticmethod
     def _magic(image: Image):
