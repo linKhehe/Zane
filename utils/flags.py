@@ -1,16 +1,20 @@
+import re
+
+
 def parse_flags(flags):
-    ret = {}
+    true = ['on', 'yes', 'y', 'true']
+    false = ['off', 'no', 'n', 'false']
+    _f = {}
     for flag in flags:
-        if flag.startswith('--'):
-            flag = flag.lstrip("-")
-            if "=" in flag:
-                ret.update({flag.split("=")[0][0]: flag.split("=")[1]})
+        find = re.findall(r"--?([^=\s]+)=?(\S+)?", flag)
+        if not find or len(find) != 1:
+            continue
+        name, value = find[0]
+        if not value:
+            _f.setdefault(name, True)
+        else:
+            if value.isdigit():
+                value = int(value)
             else:
-                ret.update({flag[0]: True})
-        if flag.startswith('-'):
-            flag = flag.lstrip("-")
-            if "=" in flag:
-                ret.update({flag.split("=")[0]: flag.split("=")[1]})
-            else:
-                ret.update({flag: True})
-    return ret
+                value = True if value.lower() in true else False if value.lower() in false else value
+            _f.setdefault(name, value)

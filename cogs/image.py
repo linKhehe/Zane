@@ -272,7 +272,7 @@ class Imaging:
             "asciiart"
         ]
     )
-    async def _ascii_command(self, ctx, member: discord.Member = None, *flags: str):
+    async def _ascii_command(self, ctx, member: discord.Member = None, *flags: commands.clean_content):
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
@@ -288,7 +288,9 @@ class Imaging:
         if member is None:
             member = ctx.author
 
-        # set the defaults for flags, overwrite them as needed
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+        start = time.perf_counter()
+
         invert = False
         brightness = 100
         size = 62
@@ -296,38 +298,31 @@ class Imaging:
         flags = parse_flags(flags)
 
         if "i" in flags.keys():
-            invert = flags['i']
-            try:
-                invert = bool(invert)
-            except ValueError:
-                raise commands.BadArgument(f"Flag arguments are invalid. -i and --invert takes no extra arguments.")
+            invert = flags["i"]
+        if "invert" in flags.keys():
+            invert = flags["invert"]
 
         if "b" in flags.keys():
-            brightness = flags['b']
-            try:
-                brightness = int(brightness)
-            except ValueError:
-                raise commands.BadArgument(f"Flag arguments are invalid. {brightness} is not an integer.")
-            if brightness > 300 or brightness < 0:
-                raise commands.BadArgument(
-                    f"Flag arguments are invalid. {brightness} is out of range. \
-                    The minimum is 0 and the maximum is 300.")
+            brightness = flags["b"]
+        if "brightness" in flags.keys():
+            brightness = flags["brightness"]
+
+        if brightness > 300:
+            raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for brightness is 300.")
+        elif brightness < 0:
+            raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for brightness is 0.")
 
         if "s" in flags.keys():
             size = flags["s"]
-            if type(size) is int:
-                raise commands.BadArgument(f"Flag arguments are invalid. {size} is not an integer.")
-            try:
-                size = int(size)
-            except ValueError:
-                raise commands.BadArgument(f"Flag arguments are invalid. {size} is not an integer.")
-            if size > 62 or size < 0:
-                raise commands.BadArgument(
-                    f"Flag arguments are invalid. {size} is out of range. \
-                    The minimum is 2 and the maximum is 62.")
+        if "size" in flags.keys():
+            size = flags["size"]
 
-        await ctx.message.add_reaction(self.bot.loading_emoji)
-        start = time.perf_counter()
+        if size > 62:
+            raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for size is 62.")
+        elif size < 2:
+            raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
+
+        await ctx.send(f"```json\n{flags}```")
 
         avatar_url = member.avatar_url_as(format="png", size=256)
         image = await Image.from_link(avatar_url)
