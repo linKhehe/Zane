@@ -299,30 +299,31 @@ class Imaging:
 
         await ctx.send(f"```json\n{flags}```")
 
-        if "i" in flags.keys():
-            invert = flags["i"]
-        if "invert" in flags.keys():
-            invert = flags["invert"]
+        if flags is not None:
+            if "i" in flags.keys():
+                invert = flags["i"]
+            if "invert" in flags.keys():
+                invert = flags["invert"]
 
-        if "b" in flags.keys():
-            brightness = flags["b"]
-        if "brightness" in flags.keys():
-            brightness = flags["brightness"]
+            if "b" in flags.keys():
+                brightness = flags["b"]
+            if "brightness" in flags.keys():
+                brightness = flags["brightness"]
 
-        if brightness > 300:
-            raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for brightness is 300.")
-        elif brightness < 0:
-            raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for brightness is 0.")
+            if brightness > 300:
+                raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for brightness is 300.")
+            elif brightness < 0:
+                raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for brightness is 0.")
 
-        if "s" in flags.keys():
-            size = flags["s"]
-        if "size" in flags.keys():
-            size = flags["size"]
+            if "s" in flags.keys():
+                size = flags["s"]
+            if "size" in flags.keys():
+                size = flags["size"]
 
-        if size > 62:
-            raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for size is 62.")
-        elif size < 2:
-            raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
+            if size > 62:
+                raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for size is 62.")
+            elif size < 2:
+                raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
         avatar_url = member.avatar_url_as(format="png", size=256)
         image = await Image.from_link(avatar_url)
