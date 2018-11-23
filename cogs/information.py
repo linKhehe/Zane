@@ -199,7 +199,7 @@ class Information:
         if member is None:
             member = ctx.author
 
-        await ctx.send(f"{member} was created on **{humanized_date(member.created_at)}** \
+        await ctx.send(f"{member.name} was created on **{humanized_date(member.created_at)}** \
 or **{humanized_time_since(member.created_at)}**.")
 
     @commands.command(
