@@ -242,21 +242,23 @@ or  {humanized_time_since(member.joined_at)}.")
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        try:
+        # we only download an avatar if it is not a gif
+        # this way we don't keep users waiting
+        if ".gif" not in member.avatar_url_as(static_format="png"):
             image = await Image.from_link(member.avatar_url_as(static_format="png", size=512))
-            if image.animation:
-                image_file = image.to_discord_file(filename="avatar.gif")
-            else:
-                image_file = image.to_discord_file(filename="avatar.png")
+            image_file = image.to_discord_file(filename="avatar.png")
+
+            # try and keep mem leaks to a minimum
             image.close()
+
             await ctx.send(f"{member.name}'s Avatar", file=image_file)
-        except discord.HTTPException:
+        else:
             e = discord.Embed(
                 title=f"{member.name}'s Avatar",
                 color=self.bot.color
             )
             e.set_image(
-                url=member.avatar_url_as(static_format="png", size=512)
+                url=member.avatar_url_as(static_format="png")
             )
             await ctx.send(embed=e)
 

@@ -140,6 +140,9 @@ class Imaging:
 
         ascii_art += "```"
 
+        # stop mem leaks
+        image.close()
+
         return ascii_art
 
     @staticmethod
@@ -165,7 +168,11 @@ class Imaging:
 
         image.resize(256, 256)
 
-        return image.to_discord_file("magik.png")
+        ret = image.to_discord_file("magik.png")
+        # make sure we're not leaking
+        image.close()
+
+        return ret
 
     @staticmethod
     def _invert(image: WandImage):
@@ -176,7 +183,11 @@ class Imaging:
         """
         image.negate()
 
-        return image.to_discord_file(filename="inverted.png")
+        ret = image.to_discord_file(filename="inverted.png")
+        # stop mem leaks
+        image.close()
+
+        return ret
 
     # Everything from here on is a command.
     # Commands are named with _name_command
