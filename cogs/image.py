@@ -162,8 +162,6 @@ class Imaging:
             rigidity=0
         )
 
-        image.sample(256, 256)
-
         return image.to_discord_file("magik.png")
 
     @staticmethod
@@ -241,7 +239,7 @@ class Imaging:
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
 
-        avatar_url = member.avatar_url_as(format="png", size=256)
+        avatar_url = member.avatar_url_as(format="png", size=512)
         image = await Image.from_link(avatar_url)
 
         # check whether or not the avatar is a gif
