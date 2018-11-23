@@ -1,3 +1,5 @@
+import time
+
 import psutil
 import humanize
 import discord
@@ -205,7 +207,7 @@ class Information:
             member = ctx.author
 
         await ctx.send(f"{member.name} was joined discord on {humanized_date(member.created_at)} \
-or {humanized_time_since(member.created_at)}.")
+, {humanized_time_since(member.created_at)}.")
 
     @commands.command(
         name="joined",
@@ -223,7 +225,7 @@ or {humanized_time_since(member.created_at)}.")
             member = ctx.author
 
         await ctx.send(f"{member.name} joined this server on {humanized_date(member.joined_at)} \
-or  {humanized_time_since(member.joined_at)}.")
+, {humanized_time_since(member.joined_at)}.")
 
     @commands.command(
         name="avatar",
@@ -263,6 +265,52 @@ or  {humanized_time_since(member.joined_at)}.")
             await ctx.send(embed=e)
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
+    @commands.command(
+        name="ping",
+        aliases=[
+            "ms"
+        ]
+    )
+    async def _ping_command(self, ctx):
+        ws = self.bot.latency * 1000
+        a = time.perf_counter()
+        msg = await ctx.send(".")
+        b = time.perf_counter()
+        z = b - a
+        await msg.edit(content="..")
+        c = time.perf_counter()
+        y = b - a
+        await msg.edit(content="...")
+        d = time.perf_counter()
+        x = c - d
+        await msg.delete()
+        rtt = round(sum([z*1000, y*1000, x*1000]))
+        m = time.perf_counter()
+        await ctx.trigger_typing()
+        rsp = round((time.perf_counter() - m)*1000)
+
+        e = discord.Embed(
+            title="ping",
+            color=self.bot.color
+        )
+        e.set_thumbnail(
+            url=ctx.me.avatar_url_as(static_format="png", size=64)
+        )
+        e.add_field(
+            name="Web Socket",
+            value=f"{ws}ms"
+        )
+        e.add_field(
+            name="Round Trip",
+            value=f"{rtt}ms"
+        )
+        e.add_field(
+            name="Response Time",
+            value=f"{rsp}ms"
+        )
+
+        await ctx.send(embed=e)
 
 
 def setup(bot):
