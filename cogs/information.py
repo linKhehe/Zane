@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from utils.format import humanized_date, humanized_time_since
+from cogs.image import WandImage as Image
 
 
 class Information:
@@ -196,6 +197,10 @@ class Information:
         ]
     )
     async def _created_command(self, ctx, member: discord.Member = None):
+        """
+        Return when a member joined this discord.
+        If the member argument isn't fulfilled, it will select you.
+        """
         if member is None:
             member = ctx.author
 
@@ -210,11 +215,44 @@ or {humanized_time_since(member.created_at)}.")
         ]
     )
     async def _joined_command(self, ctx, member: discord.Member = None):
+        """
+        Return when a member joined this server.
+        If the member argument isn't fulfilled, it will select you.
+        """
         if member is None:
             member = ctx.author
 
         await ctx.send(f"{member.name} joined this server on {humanized_date(member.joined_at)} \
 or  {humanized_time_since(member.joined_at)}.")
+
+    @commands.command(
+        name="avatar",
+        aliases=[
+            "avy",
+            "pfp"
+        ]
+    )
+    async def _avatar_command(self, ctx, member: discord.Member = None):
+        """
+        Return a user's avatar/profile picture.
+        If the member argument isn't fulfilled, it will select you.
+        """
+        if member is None:
+            member = ctx.author
+
+        try:
+            image = await Image.from_link(member.avatar_url_as(static_format="png", size=512))
+            if image.animation:
+                image_file = image.to_discord_file(filename="avatar.gif")
+            else:
+                image_file = image.to_discord_file(filename="avatar.png")
+            await ctx.send(f"{member.name}'s Avatar", file=image_file)
+        except discord.HTTPException:
+            e = discord.Embed()
+            e.set_image(
+                url=member.avatar_url_as(static_format="png", size=512)
+            )
+            await ctx.send(embed=e)
 
 def setup(bot):
     bot.add_cog(Information(bot))

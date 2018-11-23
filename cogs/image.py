@@ -333,6 +333,5 @@ class Imaging:
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
-
 def setup(bot):
     bot.add_cog(Imaging(bot))
