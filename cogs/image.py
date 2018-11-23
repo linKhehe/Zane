@@ -145,20 +145,20 @@ class Imaging:
     def _magic(image: Image):
         """
         Content aware scale an image. Made for use with _magic_command.
-        :param Image:
+        :param image:
         :return discord.File:
         """
         # overly content-aware-scale it
         image.liquid_rescale(
-            width=int(image.width * 0.3),
-            height=int(image.height * 0.3),
-            delta_x=1.75,
+            width=int(image.width * 0.5),
+            height=int(image.height * 0.5),
+            delta_x=1,
             rigidity=0
         )
         image.liquid_rescale(
-            width=int(image.width * 1.3),
-            height=int(image.height * 1.3),
-            delta_x=1.75,
+            width=int(image.width * 1.5),
+            height=int(image.height * 1.5),
+            delta_x=2,
             rigidity=0
         )
 
