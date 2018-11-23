@@ -297,6 +297,10 @@ class Imaging:
 
         if "i" in flags.keys():
             invert = flags['i']
+            try:
+                bool(invert)
+            except ValueError:
+                pass
             if type(invert) != bool:
                 raise commands.BadArgument(f"Flag arguments are invalid. -i and --invert takes no extra arguments.")
 
