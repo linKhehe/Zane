@@ -320,7 +320,9 @@ class Imaging:
             if "size" in flags.keys():
                 size = flags["size"]
 
-            if size > 62:
+            if type(size) is not int:
+                raise commands.BadArgument("A passed flag was invalid.\nThe size flag is an whole number.")
+            elif size > 62:
                 raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for size is 62.")
             elif size < 2:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
