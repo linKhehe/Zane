@@ -1,16 +1,16 @@
 def parse_flags(flags):
-    ret = {"long flags": {}, "short flags": {}}
+    ret = {}
     for flag in flags:
         if flag.startswith('--'):
             flag = flag.replace("--", "")
             if "=" in flag:
-                ret['long flags'].update({flag: flag.split("=")[1]})
+                ret.update({flag.split("=")[0]: flag.split("=")[1]})
             else:
-                ret['long flags'].update({flag: True})
+                ret.update({flag: True})
         if flag.startswith('-'):
             flag = flag.replace("-", "")
             if "=" in flag:
-                ret['short flags'].update({flag: flag.split("=")[1]})
+                ret.update({flag.split("=")[0]: flag.split("=")[1]})
             else:
-                ret['short flags'].update({flag: True})
+                ret.update({flag: True})
     return ret
