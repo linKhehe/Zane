@@ -18,3 +18,4 @@ def parse_flags(flags):
             else:
                 value = True if value.lower() in true else False if value.lower() in false else value
             _f.setdefault(name, value)
+    return _f
