@@ -4,9 +4,9 @@ def parse_flags(flags):
         if flag.startswith('--'):
             flag = flag.replace("--", "")
             if "=" in flag:
-                ret.update({flag.split("=")[0]: flag.split("=")[1]})
+                ret.update({flag.split("=")[0][0]: flag.split("=")[1]})
             else:
-                ret.update({flag: True})
+                ret.update({flag[0]: True})
         if flag.startswith('-'):
             flag = flag.replace("-", "")
             if "=" in flag:
