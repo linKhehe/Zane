@@ -36,6 +36,7 @@ class Zane(commands.AutoShardedBot):
         ]
         self.color = discord.Color.blue().value
         self.init_time = datetime.datetime.utcnow()
+        self.owner_ids = [217462890364403712, 455289384187592704]
         super().__init__(command_prefix=self.prefix)
         self.loop.create_task(self.__ainit__())
 
@@ -89,6 +90,11 @@ User Count: {len(list(self.get_all_members()))}""")
         self.loop.create_task(self.set_status())
         self.app_info = await self.application_info()
         await asyncio.sleep(120)
+
+    async def is_owner(self, user):
+        if user.id in self.owner_ids:
+            return True
+        return False
 
 
 if __name__ == "__main__":
