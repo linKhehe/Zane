@@ -273,7 +273,7 @@ class Information:
         ]
     )
     async def _ping_command(self, ctx):
-        ws = self.bot.latency * 1000
+        ws = round(self.bot.latency * 1000, 2)
         a = time.perf_counter()
         msg = await ctx.send(".")
         b = time.perf_counter()
@@ -291,7 +291,7 @@ class Information:
         rsp = round((time.perf_counter() - m)*1000)
 
         e = discord.Embed(
-            title="ping",
+            title="Ping",
             color=self.bot.color
         )
         e.set_thumbnail(
@@ -299,15 +299,18 @@ class Information:
         )
         e.add_field(
             name="Web Socket",
-            value=f"{ws}ms"
+            value=f"{ws}ms",
+            inline=False
         )
         e.add_field(
             name="Round Trip",
-            value=f"{rtt}ms"
+            value=f"{rtt}ms",
+            inline=False
         )
         e.add_field(
             name="Response Time",
-            value=f"{rsp}ms"
+            value=f"{rsp}ms",
+            inline=False
         )
 
         await ctx.send(embed=e)
