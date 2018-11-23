@@ -240,6 +240,8 @@ or  {humanized_time_since(member.joined_at)}.")
         if member is None:
             member = ctx.author
 
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+
         try:
             image = await Image.from_link(member.avatar_url_as(static_format="png", size=512))
             if image.animation:
@@ -248,11 +250,17 @@ or  {humanized_time_since(member.joined_at)}.")
                 image_file = image.to_discord_file(filename="avatar.png")
             await ctx.send(f"{member.name}'s Avatar", file=image_file)
         except discord.HTTPException:
-            e = discord.Embed()
+            e = discord.Embed(
+                title=f"{member.name}'s Avatar",
+                color=self.bot.color
+            )
             e.set_image(
                 url=member.avatar_url_as(static_format="png", size=512)
             )
             await ctx.send(embed=e)
+
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
 
 def setup(bot):
     bot.add_cog(Information(bot))
