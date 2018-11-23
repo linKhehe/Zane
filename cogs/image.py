@@ -41,7 +41,8 @@ class Color(WandColor):
     def ascii_character(self):
         value = self.red + self.green + self.blue
         value *= 100
-        return self.ascii_characters[int(math.ceil(value/ 25.) * 25)]
+        return self.ascii_characters[int(math.ceil(value / 25.) * 25)]
+
 
 class WandImage(WandImageBase):
     """

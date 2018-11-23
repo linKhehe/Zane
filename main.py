@@ -31,7 +31,7 @@ class Zane(commands.AutoShardedBot):
             'cogs.information'
         ]
         self.prefixes = [
-            'zt.',
+            'za.',
             'zane '
         ]
         self.color = discord.Color.blue().value
