@@ -13,6 +13,17 @@ class ErrorHandler:
         self.bot = bot
         self.ignored = commands.CommandNotFound
 
+    def _error_formatter(self, title: str, message: str):
+        ret = discord.Embed(
+            title=title,
+            description=message,
+            color=self.bot.color
+        )
+        ret.set_footer(
+            icon_url=self.bot.user.avatar_url_as(static_format="png", size=64)
+        )
+        return ret
+
     async def on_command_error(self, ctx, exception):
         if hasattr(ctx.command, 'on_error'):
             return
@@ -26,14 +37,16 @@ class ErrorHandler:
             try:
                 retry_after = datetime.timedelta(seconds=exception.retry_after)
                 retry_after = humanize.naturaltime(datetime.datetime.now() + retry_after)
-                return await ctx.send(f"You are on a cooldown. You can retry in {retry_after}.")
+                e = self._error_formatter("Error: Cooldown", f"You are on a cooldown. You can retry in {retry_after}.")
+                return await ctx.send(embed=e)
             except discord.Forbidden:
                 pass
 
         if isinstance(exception, commands.BadArgument):
             ctx.command.reset_cooldown(ctx)
             try:
-                await ctx.send(str(exception))
+                e = self._error_formatter("Error: Bad Argument", str(exception))
+                await ctx.send(embed=e)
             except discord.Forbidden:
                 pass
 
@@ -43,14 +56,16 @@ class ErrorHandler:
                 return await ctx.message.add_reaction("❌")
             except discord.Forbidden:
                 try:
-                    return await ctx.send("This command is owner only.")
+                    e = self._error_formatter("Error: Owner Only", "This command is owner only.")
+                    return await ctx.send(embed=e)
                 except discord.Forbidden:
                     pass
 
         if isinstance(exception, commands.MissingPermissions):
             ctx.command.reset_cooldown(ctx)
             try:
-                return await ctx.send(str(exception))
+                e = self._error_formatter("Error: Missing Permissions", str(exception))
+                return await ctx.send(embed=e)
             except discord.Forbidden:
                 pass
 
