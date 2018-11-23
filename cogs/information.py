@@ -1,4 +1,5 @@
 import psutil
+import humanize
 import discord
 from discord.ext import commands
 
