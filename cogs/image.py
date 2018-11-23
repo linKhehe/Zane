@@ -3,7 +3,7 @@ import functools
 import time
 import math
 
-from wand.image import Image as WandImage
+from wand.image import WandImage as WandWandImage
 from wand.color import Color as WandColor
 from discord.ext import commands
 import aiohttp
@@ -43,9 +43,9 @@ class Color(WandColor):
         value *= 100
         return self.ascii_characters[int(math.ceil(value/ 25.) * 25)]
 
-class Image(WandImage):
+class WandImage(WandWandImage):
     """
-    A little custom version of wand.image.Image.
+    A little custom version of wand.image.WandImage.
 
     Adds functionality such as...
 
@@ -107,11 +107,11 @@ class Imaging:
         self.bot = bot
 
     @staticmethod
-    def _ascii(image: Image, inverted: bool = False, brightness: int = 100, size: int = 62):
+    def _ascii(image: WandImage, inverted: bool = False, brightness: int = 100, size: int = 62):
         """
         Converts image into an ascii art string.
 
-        :param image: The :class Image: to convert to ascii.
+        :param image: The :class WandImage: to convert to ascii.
         :param inverted: A :type bool: determining whether or not to invert.
         :param brightness: A :type int: determining the brightness.
         :param size: A :type int: determining the size.
@@ -142,10 +142,10 @@ class Imaging:
         return ascii_art
 
     @staticmethod
-    def _magic(image: Image):
+    def _magic(image: WandImage):
         """
         Content aware scale an image. Made for use with _magic_command.
-        :param image:
+        :param WandImage:
         :return discord.File:
         """
         # overly content-aware-scale it
@@ -167,10 +167,10 @@ class Imaging:
         return image.to_discord_file("magik.png")
 
     @staticmethod
-    def _invert(image: Image):
+    def _invert(image: WandImage):
         """
         Invert an image. Made for use with _invert_command.
-        :param Image:
+        :param WandImage:
         :return discord.File:
         """
         image.negate()
@@ -204,12 +204,12 @@ class Imaging:
         start = time.perf_counter()
 
         avatar_url = member.avatar_url_as(format="png", size=512)
-        image = await Image.from_link(avatar_url)
+        image = await WandImage.from_link(avatar_url)
 
         executor = functools.partial(self._magic, image)
 
         # keep in mind that the output of _magic is ...
-        # Image.to_discord_file so we can send them right away.
+        # WandImage.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
@@ -242,14 +242,14 @@ class Imaging:
         start = time.perf_counter()
 
         avatar_url = member.avatar_url_as(format="png", size=256)
-        image = await Image.from_link(avatar_url)
+        image = await WandImage.from_link(avatar_url)
 
         # check whether or not the avatar is a gif
         # assign either _invert_gif or _invert depending on image.animation
         executor = functools.partial(self._invert, image)
 
         # keep in mind that the output of _magic is ...
-        # Image.to_discord_file so we can send them right away.
+        # WandImage.to_discord_file so we can send them right away.
         file = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
@@ -320,7 +320,7 @@ class Imaging:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
         avatar_url = member.avatar_url_as(format="png", size=256)
-        image = await Image.from_link(avatar_url)
+        image = await WandImage.from_link(avatar_url)
 
         executor = functools.partial(self._ascii, image, invert, brightness, size)
         ascii_art = await self.bot.loop.run_in_executor(None, executor)
