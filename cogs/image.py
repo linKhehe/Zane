@@ -9,6 +9,8 @@ from discord.ext import commands
 import aiohttp
 import discord
 
+from utils.flags import parse_flags
+
 
 class Color(WandColor):
     """
@@ -286,33 +288,35 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        # set the defaults for flags, overwrite them as needed
         invert = False
         brightness = 100
         size = 62
-        # check for the args using the worst method possible... who cares /shrug
 
-        # WARNING #
-        # SPAGHETTI CODE INBOUND #
+        flags = parse_flags(flags)
 
-        for flag in flags:
-            if flag == '-i' or flag == '--invert':
-                invert = True
-            if flag.startswith('-b=') or flag.startswith('--brightness='):
-                try:
-                    brightness = int(flag.split("=")[1])
-                    if brightness > 200 or brightness < 0:
-                        raise commands.BadArgument("Invalid flag passed.")
-                except TypeError:
-                    raise commands.BadArgument("Invalid flag passed.")
-            if flag.startswith('-s') or flag.startswith('--size'):
-                try:
-                    size = int(flag.split("=")[1])
-                    if size > 62 or size < 0:
-                        raise commands.BadArgument("Invalid flag passed.")
-                except TypeError:
-                    raise commands.BadArgument("Invalid flag passed.")
+        if "i" in flags.keys():
+            invert = flags['i']
+            if type(invert) != bool:
+                raise commands.BadArgument(f"Flag arguments are invalid. -i and --invert takes no extra arguments.")
 
-        # SPAGHETTI CODE OVER #
+        if "b" in flags.keys():
+            brightness = flags['b']
+            if type(brightness) != int:
+                raise commands.BadArgument(f"Flag arguments are invalid. {brightness} is not an integer.")
+            if brightness > 300 or brightness < 0:
+                raise commands.BadArgument(
+                    f"Flag arguments are invalid. {brightness} is out of range. \
+                    The minimum is 0 and the maximum is 300.")
+
+        if "s" in flags.keys():
+            size = flags["s"]
+            if type(size) != int:
+                raise commands.BadArgument(f"Flag arguments are invalid. {size} is not an integer.")
+            if size > 62 or size < 0:
+                raise commands.BadArgument(
+                    f"Flag arguments are invalid. {size} is out of range. \
+                    The minimum is 2 and the maximum is 62.")
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
         start = time.perf_counter()
