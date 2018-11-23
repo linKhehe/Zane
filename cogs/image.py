@@ -297,8 +297,6 @@ class Imaging:
 
         flags = parse_flags(flags)
 
-        await ctx.send(f"```json\n{flags}```")
-
         if flags is not None:
             if "i" in flags.keys():
                 invert = flags["i"]
