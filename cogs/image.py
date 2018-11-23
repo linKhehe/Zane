@@ -32,7 +32,8 @@ class Color(WandColor):
             100: "'",
             75: ",",
             50: ".",
-            25: " "
+            25: " ",
+            0: " "
         }
         super().__init__(*args, **kwargs)
 
