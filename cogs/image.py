@@ -21,12 +21,17 @@ class Color(WandColor):
 
     def __init__(self, *args, **kwargs):
         self.ascii_characters = {
-            250: "@",
-            200: "#",
-            150: "+",
-            100: "-",
-            50: "'",
-            0: " "
+            275: "@",
+            250: "#",
+            225: ";",
+            200: "+",
+            175: "=",
+            150: ":",
+            125: "-",
+            100: "\"",
+            75: "'",
+            50: ".",
+            25: " "
         }
         super().__init__(*args, **kwargs)
 
@@ -34,20 +39,7 @@ class Color(WandColor):
     def ascii_character(self):
         value = self.red + self.green + self.blue
         value *= 100
-
-        if value > 250:
-            return self.ascii_characters[250]
-        elif value > 200:
-            return self.ascii_characters[200]
-        elif value > 150:
-            return self.ascii_characters[150]
-        elif value > 100:
-            return self.ascii_characters[100]
-        elif value > 50:
-            return self.ascii_characters[50]
-        else:
-            return self.ascii_characters[0]
-
+        return self.ascii_characters[int(math.ceil(value/ 25.) * 25)]
 
 class Image(WandImage):
     """
