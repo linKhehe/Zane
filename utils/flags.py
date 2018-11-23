@@ -7,7 +7,6 @@ class Flags:
     def to_dict(self):
         ret = {"long flags": {}, "short flags": {}}
         for flag in self.passed_flags:
-            assert isinstance(flag, str)
             if flag.startswith('--'):
                 flag = flag.replace("--", "")
                 if "=" in flag:
