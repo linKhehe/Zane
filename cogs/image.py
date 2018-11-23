@@ -297,6 +297,8 @@ class Imaging:
 
         flags = parse_flags(flags)
 
+        await ctx.send(f"```json\n{flags}```")
+
         if "i" in flags.keys():
             invert = flags["i"]
         if "invert" in flags.keys():
@@ -321,8 +323,6 @@ class Imaging:
             raise commands.BadArgument("A passed flag was invalid.\nThe maximum value for size is 62.")
         elif size < 2:
             raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
-
-        await ctx.send(f"```json\n{flags}```")
 
         avatar_url = member.avatar_url_as(format="png", size=256)
         image = await Image.from_link(avatar_url)
