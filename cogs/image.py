@@ -3,7 +3,7 @@ import functools
 import time
 import math
 
-from wand.image import WandImage as WandWandImage
+from wand.image import Image as WandImage
 from wand.color import Color as WandColor
 from discord.ext import commands
 import aiohttp
@@ -43,7 +43,7 @@ class Color(WandColor):
         value *= 100
         return self.ascii_characters[int(math.ceil(value/ 25.) * 25)]
 
-class WandImage(WandWandImage):
+class WandImage(Image):
     """
     A little custom version of wand.image.WandImage.
 
