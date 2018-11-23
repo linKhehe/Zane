@@ -3,6 +3,8 @@ import humanize
 import discord
 from discord.ext import commands
 
+from utils.format import humanized_date, humanized_time_since
+
 
 class Information:
 
@@ -186,6 +188,33 @@ class Information:
 
         await ctx.send(embed=e)
 
+    @commands.command(
+        name="created",
+        aliases=[
+            'created_at',
+            'createdat'
+        ]
+    )
+    async def _created_command(self, ctx, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+
+        await ctx.send(f"{member} was created on **{humanized_date(member.created_at)}** \
+        or  **{humanized_time_since(member.created_at)}**.")
+
+    @commands.command(
+        name="joined",
+        aliases=[
+            'joined_at',
+            'joinedat'
+        ]
+    )
+    async def _joined_command(self, ctx, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+
+        await ctx.send(f"{member} joined this server on **{humanized_date(member.joined_at)}** \
+        or  **{humanized_time_since(member.joined_at)}**.")
 
 def setup(bot):
     bot.add_cog(Information(bot))
