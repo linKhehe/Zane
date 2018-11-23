@@ -28,13 +28,15 @@ class Zane(commands.AutoShardedBot):
         self.bot_cogs = [
             'jishaku',
             'cogs.image',
-            'cogs.information'
+            'cogs.information',
+            'cogs.eh'
         ]
         self.prefixes = [
             'za.',
             'zane '
         ]
         self.color = discord.Color.blue().value
+
         self.init_time = datetime.datetime.utcnow()
         self.owner_ids = [217462890364403712, 455289384187592704]
         super().__init__(command_prefix=self.prefix)

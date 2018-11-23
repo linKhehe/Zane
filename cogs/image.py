@@ -118,30 +118,28 @@ class Imaging:
         :param size: A :type int: determining the size.
         :return: A :type str: containing the art.
         """
-        if inverted:
-            image.negate()
-        if brightness is not 100:
-            image.modulate(brightness=brightness)
-        if size > 62:
-            size = 62
-        if size < 0:
-            size = 2
-        size = int(math.ceil(size / 2.) * 2)
+        with image:
+            if inverted:
+                image.negate()
+            if brightness is not 100:
+                image.modulate(brightness=brightness)
+            if size > 62:
+                size = 62
+            if size < 0:
+                size = 2
+            size = int(math.ceil(size / 2.) * 2)
 
-        image.sample(size, int(size / 2))
+            image.sample(size, int(size / 2))
 
-        ascii_art = "```"
+            ascii_art = "```"
 
-        for row in image:
-            ascii_art += "\n"
-            for col in row:
-                with Color(str(col)) as c:
-                    ascii_art += c.ascii_character
+            for row in image:
+                ascii_art += "\n"
+                for col in row:
+                    with Color(str(col)) as c:
+                        ascii_art += c.ascii_character
 
-        ascii_art += "```"
-
-        # stop mem leaks
-        image.close()
+            ascii_art += "```"
 
         return ascii_art
 
@@ -153,24 +151,23 @@ class Imaging:
         :return discord.File:
         """
         # overly content-aware-scale it
-        image.liquid_rescale(
-            width=int(image.width * 0.5),
-            height=int(image.height * 0.5),
-            delta_x=1,
-            rigidity=0
-        )
-        image.liquid_rescale(
-            width=int(image.width * 1.5),
-            height=int(image.height * 1.5),
-            delta_x=2,
-            rigidity=0
-        )
+        with image:
+            image.liquid_rescale(
+                width=int(image.width * 0.5),
+                height=int(image.height * 0.5),
+                delta_x=1,
+                rigidity=0
+            )
+            image.liquid_rescale(
+                width=int(image.width * 1.5),
+                height=int(image.height * 1.5),
+                delta_x=2,
+                rigidity=0
+            )
 
-        image.resize(256, 256)
+            image.resize(256, 256)
 
-        ret = image.to_discord_file("magik.png")
-        # make sure we're not leaking
-        image.close()
+            ret = image.to_discord_file("magik.png")
 
         return ret
 
@@ -181,11 +178,9 @@ class Imaging:
         :param WandImage:
         :return discord.File:
         """
-        image.negate()
-
-        ret = image.to_discord_file(filename="inverted.png")
-        # stop mem leaks
-        image.close()
+        with image:
+            image.negate()
+            ret = image.to_discord_file(filename="inverted.png")
 
         return ret
 
