@@ -248,6 +248,7 @@ or  {humanized_time_since(member.joined_at)}.")
                 image_file = image.to_discord_file(filename="avatar.gif")
             else:
                 image_file = image.to_discord_file(filename="avatar.png")
+            image.close()
             await ctx.send(f"{member.name}'s Avatar", file=image_file)
         except discord.HTTPException:
             e = discord.Embed(
