@@ -298,14 +298,14 @@ class Imaging:
         if "i" in flags.keys():
             invert = flags['i']
             try:
-                bool(invert)
+                invert = bool(invert)
             except ValueError:
                 raise commands.BadArgument(f"Flag arguments are invalid. -i and --invert takes no extra arguments.")
 
         if "b" in flags.keys():
             brightness = flags['b']
             try:
-                int(brightness)
+                brightness = int(brightness)
             except ValueError:
                 raise commands.BadArgument(f"Flag arguments are invalid. {brightness} is not an integer.")
             if brightness > 300 or brightness < 0:
@@ -316,7 +316,7 @@ class Imaging:
         if "s" in flags.keys():
             size = flags["s"]
             try:
-                int(size)
+                size = int(size)
             except ValueError:
                 raise commands.BadArgument(f"Flag arguments are invalid. {size} is not an integer.")
             if size > 62 or size < 0:
