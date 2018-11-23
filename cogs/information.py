@@ -200,7 +200,7 @@ class Information:
             member = ctx.author
 
         await ctx.send(f"{member} was created on **{humanized_date(member.created_at)}** \
-        or  **{humanized_time_since(member.created_at)}**.")
+or  **{humanized_time_since(member.created_at)}**.")
 
     @commands.command(
         name="joined",
@@ -214,7 +214,7 @@ class Information:
             member = ctx.author
 
         await ctx.send(f"{member} joined this server on **{humanized_date(member.joined_at)}** \
-        or  **{humanized_time_since(member.joined_at)}**.")
+or  **{humanized_time_since(member.joined_at)}**.")
 
 def setup(bot):
     bot.add_cog(Information(bot))
