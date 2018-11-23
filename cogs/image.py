@@ -315,6 +315,8 @@ class Imaging:
 
         if "s" in flags.keys():
             size = flags["s"]
+            if type(size) is int:
+                raise commands.BadArgument(f"Flag arguments are invalid. {size} is not an integer.")
             try:
                 size = int(size)
             except ValueError:
