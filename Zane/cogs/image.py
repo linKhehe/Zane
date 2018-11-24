@@ -212,7 +212,7 @@ class Imaging:
         """
         with image:
             image.liquid_rescale(int(image.width * 0.5), image.height)
-            image.liquid_rescale(int(image.width * 3.5), image.height)
+            image.liquid_rescale(int(image.width * 3.5), image.height, delta_x=1)
             ret = image.to_discord_file("expand_dong.png")
 
         return ret
@@ -337,6 +337,34 @@ class Imaging:
         )
 
         await ctx.send(f"*{duration}ms*\n{ascii_art}")
+
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
+    @commands.command(
+        name="expand",
+        aliases=[
+            'expnd',
+            'expanddong'
+        ]
+    )
+    @commands.cooldown(
+        rate=1,
+        per=20,
+        type=commands.BucketType.user
+    )
+    async def _expand_command(self, ctx, member: discord.Member = None):
+        """
+        Expand a member's profile picture.
+        If the member parameter is not fulfilled, the selected member will be you.
+        """
+        if member is None:
+            member = ctx.author
+
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=256), self._expand)
+
+        await ctx.send(f"*{duration}ms*", file=file)
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
