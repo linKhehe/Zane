@@ -125,16 +125,12 @@ class Moderation:
                     if isinstance(channel, discord.channel.TextChannel):
                         await channel.set_permissions(
                             member,
-                            overwrite=discord.PermissionOverwrite(
-                                send_messages=None
-                            )
+                            overwrite=None
                         )
                     elif isinstance(channel, discord.channel.VoiceChannel):
                         await channel.set_permissions(
                             member,
-                            overwrite=discord.PermissionOverwrite(
-                                speak=None
-                            )
+                            overwrite=None
                         )
                 except discord.Forbidden:
                     pass
@@ -161,16 +157,12 @@ class Moderation:
                 if isinstance(channel, discord.channel.TextChannel):
                     await channel.set_permissions(
                         member,
-                        overwrite=discord.PermissionOverwrite(
-                            send_messages=None
-                        )
+                        overwrite=None
                     )
                 elif isinstance(channel, discord.channel.VoiceChannel):
                     await channel.set_permissions(
                         member,
-                        overwrite=discord.PermissionOverwrite(
-                            speak=None
-                        )
+                        overwrite=None
                     )
             except discord.Forbidden:
                 pass
