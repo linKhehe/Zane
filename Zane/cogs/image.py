@@ -9,7 +9,7 @@ from discord.ext import commands
 import aiohttp
 import discord
 
-from Zane.utils.flags import parse_flags
+from utils.flags import parse_flags
 
 
 class Color(WandColor):
