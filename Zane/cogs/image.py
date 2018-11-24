@@ -107,6 +107,24 @@ class Imaging:
     def __init__(self, bot):
         self.bot = bot
 
+    async def image_function_on_link(self, link: str, image_function: function):
+        start = time.perf_counter()
+
+        image = await WandImage.from_link(link)
+
+        with image:
+
+            executor = functools.partial(function, image)
+
+            file = await self.bot.loop.run_in_executor(None, executor)
+
+        end = time.perf_counter()
+        duration = round((end - start) * 1000, 2)
+
+        return file, duration
+
+
+
     @staticmethod
     def _ascii(image: WandImage, inverted: bool = False, brightness: int = 100, size: int = 62):
         """
@@ -186,6 +204,21 @@ class Imaging:
 
     # Everything from here on is a command.
     # Commands are named with _name_command
+
+    @staticmethod
+    def _expand(image: WandImage):
+        """
+        Expand an image using a bit of seam-carving.
+        :param image:
+        :return discord.File:
+        """
+        with image:
+            image.liquid_rescale(int(image.width * 0.5), image.height)
+            image.liquid_rescale(int(image.width * 3.5), image.height)
+            ret = image.to_discord_file("expand_dong.png")
+
+        return ret
+
 
     @commands.command(
         name="magic",
