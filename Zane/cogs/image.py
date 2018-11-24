@@ -107,7 +107,7 @@ class Imaging:
     def __init__(self, bot):
         self.bot = bot
 
-    async def _image_function_on_link(self, link: str, image_function: function):
+    async def _image_function_on_link(self, link: str, image_function):
         start = time.perf_counter()
 
         image = await WandImage.from_link(link)
