@@ -131,7 +131,7 @@ class Imaging:
         """
         with WandImage(filename="assets/wasted.png") as wasted:
             with image:
-                image.composite(wasted, 0, 0)
+                image.composite(wasted, int(wasted.width / 2), -200)
                 ret = image.to_discord_file("wasted.png")
 
         return ret
