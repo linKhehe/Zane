@@ -137,7 +137,7 @@ class Moderation:
 
             e = discord.Embed(
                 title=f"Unmuted: {member.name}",
-                description="I unmuted {member.name}.",
+                description=f"I unmuted {member.name}.",
                 color=self.bot.color
             )
             e.set_thumbnail(
@@ -173,7 +173,7 @@ class Moderation:
 
         e = discord.Embed(
             title=f"Unmuted: {member.name}",
-            description="I unmuted {member.name}.",
+            description=f"I unmuted {member.name}.",
             color=self.bot.color
         )
         e.set_thumbnail(
