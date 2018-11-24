@@ -121,7 +121,17 @@ class Imaging:
 
         return file, duration
 
+    @staticmethod
+    def _wasted(image: WandImage):
+        """
+        Add the wasted image on top of the provided image.
 
+        :param image:
+        :return:
+        """
+        with WandImage(filename="../assets/wasted.png") as wasted:
+            with image:
+                image.composite(wasted, 0, 0)
 
     @staticmethod
     def _ascii(image: WandImage, inverted: bool = False, brightness: int = 100, size: int = 62):
