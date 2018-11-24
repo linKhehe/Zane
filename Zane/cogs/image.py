@@ -396,7 +396,7 @@ class Imaging:
     )
     async def _wasted_command(self, ctx, member: discord.Member = None):
         """
-        Expand a member's profile picture.
+        Add a gta wasted picture to a member's profile picture.
         If the member parameter is not fulfilled, the selected member will be you.
         """
         if member is None:
