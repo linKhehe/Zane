@@ -206,7 +206,7 @@ class Information:
         if member is None:
             member = ctx.author
 
-        await ctx.send(f"{member.name} was joined discord on {humanized_date(member.created_at)} \
+        await ctx.send(f"{member.name} joined Discord on {humanized_date(member.created_at)} \
 , {humanized_time_since(member.created_at)}.")
 
     @commands.command(
@@ -225,7 +225,7 @@ class Information:
             member = ctx.author
 
         await ctx.send(f"{member.name} joined this server on {humanized_date(member.joined_at)} \
-, {humanized_time_since(member.joined_at)}.")
+,{humanized_time_since(member.joined_at)}.")
 
     @commands.command(
         name="avatar",

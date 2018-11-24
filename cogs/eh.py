@@ -31,7 +31,7 @@ class ErrorHandler:
         exception = getattr(exception, 'original', exception)
 
         if isinstance(exception, self.ignored):
-            pass
+            return
 
         if isinstance(exception, commands.CommandOnCooldown):
             try:
@@ -40,7 +40,7 @@ class ErrorHandler:
                 e = self._error_formatter("Error: Cooldown", f"You are on a cooldown. You can retry in {retry_after}.")
                 return await ctx.send(embed=e)
             except discord.Forbidden:
-                pass
+                return
 
         if isinstance(exception, commands.BadArgument):
             ctx.command.reset_cooldown(ctx)
@@ -48,7 +48,7 @@ class ErrorHandler:
                 e = self._error_formatter("Error: Bad Argument", str(exception))
                 await ctx.send(embed=e)
             except discord.Forbidden:
-                pass
+                return
 
         if isinstance(exception, commands.NotOwner):
             ctx.command.reset_cooldown(ctx)
@@ -59,15 +59,15 @@ class ErrorHandler:
                     e = self._error_formatter("Error: Owner Only", "This command is owner only.")
                     return await ctx.send(embed=e)
                 except discord.Forbidden:
-                    pass
+                    return
 
         if isinstance(exception, commands.MissingPermissions):
             ctx.command.reset_cooldown(ctx)
             try:
-                e = self._error_formatter("Error: Missing Permissions", str(exception))
+                e = self._error_formatter("Error: Missing Permissions", "I am missing the permission(s) to do that.")
                 return await ctx.send(embed=e)
             except discord.Forbidden:
-                pass
+                return
 
         if isinstance(exception, discord.Forbidden):
             ctx.command.reset_cooldown(ctx)
@@ -75,7 +75,15 @@ class ErrorHandler:
                 e = self._error_formatter("Error: Im Missing Permissions For That", str(exception))
                 return await ctx.send(embed=e)
             except discord.Forbidden:
-                pass
+                return
+
+        if isinstance(exception, commands.MissingRequiredArgument):
+            ctx.command.reset_cooldown(ctx)
+            try:
+                e = self._error_formatter("Error: Missing Argument", str(exception))
+                return await ctx.send(embed=e)
+            except discord.Forbidden:
+                return
 
         ctx.command.reset_cooldown(ctx)
 

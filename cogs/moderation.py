@@ -14,11 +14,11 @@ class Moderation:
     @commands.has_permissions(
         kick_members=True
     )
-    async def _kick_command(self, ctx, member: discord.Member, reason: str = None):
+    async def _kick_command(self, ctx, member: discord.Member):
         """
         Kick a member from the server.
         """
-        await member.kick(reason=reason)
+        await member.kick(reason=f"Kick requested by {ctx.author}.")
 
         e = discord.Embed(
             title=f"Kicked: {member.name}",
@@ -36,14 +36,15 @@ class Moderation:
     @commands.has_permissions(
         ban_members=True
     )
-    async def _ban_command(self, ctx, member: discord.Member, time: int = False, reason: str = None):
+    async def _ban_command(self, ctx, member: discord.Member, time: int = False):
         """
-        Ban a member from the server. You can use the time argument to specify then the member should be unbanned.
+        Ban a member from the server.
+        You can use the time argument to specify then the member should be unbanned in seconds.
         """
         if time <= 0:
             raise commands.BadArgument("An invalid argument was passed. The time argument can't be negative or 0.")
 
-        await member.ban(reason=reason)
+        await member.ban(reason=f"Ban requested by {ctx.author}.")
 
         e = discord.Embed(
             title=f"Banned: {member.name}",
@@ -71,6 +72,116 @@ class Moderation:
                 await member.send(embed=e)
             except discord.Forbidden:
                 pass
+
+    @commands.command(
+        name="mute"
+    )
+    @commands.has_permissions(
+        manage_roles=True
+    )
+    async def _mute_command(self, ctx, member: discord.Member, time: int = False):
+        """
+        Mute a member in all text/voice channels.
+        You can use the time argument to specify then the member should be unmuted in seconds.
+        """
+        success_channels = []
+        for channel in ctx.guild.channels:
+            try:
+                if isinstance(channel, discord.channel.TextChannel):
+                    await channel.set_permissions(
+                        member,
+                        overwrite=discord.PermissionOverwrite(
+                            send_messages=False
+                        )
+                    )
+                    success_channels.append(channel.name)
+                elif isinstance(channel, discord.channel.VoiceChannel):
+                    await channel.set_permissions(
+                        member,
+                        overwrite=discord.PermissionOverwrite(
+                            speak=False
+                        )
+                    )
+                    success_channels.append(channel.name)
+            except discord.Forbidden:
+                pass
+
+        e = discord.Embed(
+            title=f"Muted: {member.name}",
+            description=f"I muted {member.name} in the\
+{len(success_channels)} channel(s) that I have permissions to mute in!",
+            color=self.bot.color
+        )
+        e.set_thumbnail(
+            url=member.avatar_url_as(static_format="png", size=64)
+        )
+
+        await ctx.send(embed=e)
+
+        if time:
+            await asyncio.sleep(time)
+            for channel in ctx.guild.channels:
+                try:
+                    if isinstance(channel, discord.channel.TextChannel):
+                        await channel.set_permissions(
+                            member,
+                            overwrite=discord.PermissionOverwrite(
+                                send_messages=None
+                            )
+                        )
+                    elif isinstance(channel, discord.channel.VoiceChannel):
+                        await channel.set_permissions(
+                            member,
+                            overwrite=discord.PermissionOverwrite(
+                                speak=None
+                            )
+                        )
+                except discord.Forbidden:
+                    pass
+
+            e = discord.Embed(
+                title=f"Unmuted: {member.name}",
+                descirption="I unmuted {member.name}."
+            )
+
+            await ctx.send(member.mention, embed=e)
+
+    @commands.command(
+        name="unmute"
+    )
+    @commands.has_permissions(
+        manage_roles=True
+    )
+    async def _unmute_command(self, ctx, member: discord.Member):
+        """
+        Unmute a member.
+        """
+        for channel in ctx.guild.channels:
+            try:
+                if isinstance(channel, discord.channel.TextChannel):
+                    await channel.set_permissions(
+                        member,
+                        overwrite=discord.PermissionOverwrite(
+                            send_messages=None
+                        )
+                    )
+                elif isinstance(channel, discord.channel.VoiceChannel):
+                    await channel.set_permissions(
+                        member,
+                        overwrite=discord.PermissionOverwrite(
+                            speak=None
+                        )
+                    )
+            except discord.Forbidden:
+                pass
+
+        e = discord.Embed(
+            title=f"Unmuted: {member.name}",
+            descirption="I unmuted {member.name}."
+        )
+
+        await ctx.send(member.mention, embed=e)
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
