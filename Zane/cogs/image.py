@@ -112,11 +112,9 @@ class Imaging:
 
         image = await WandImage.from_link(link)
 
-        with image:
+        executor = functools.partial(image_function, image)
 
-            executor = functools.partial(image_function, image)
-
-            file = await self.bot.loop.run_in_executor(None, executor)
+        file = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
