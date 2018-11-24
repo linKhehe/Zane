@@ -273,6 +273,11 @@ class Information:
         ]
     )
     async def _ping_command(self, ctx):
+        """
+        Return the ping for the bot.
+        It contains the Web Socket ping, the Round Trip ping, and the Response Time ping.
+        All pings are measured in milliseconds and are rounded to the 100th place.
+        """
         ws = round(self.bot.latency * 1000, 2)
         a = time.perf_counter()
         msg = await ctx.send(".")

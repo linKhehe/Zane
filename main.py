@@ -29,7 +29,8 @@ class Zane(commands.AutoShardedBot):
             'jishaku',
             'cogs.image',
             'cogs.information',
-            'cogs.eh'
+            'cogs.eh',
+            'cogs.moderation'
         ]
         self.prefixes = [
             'za.',

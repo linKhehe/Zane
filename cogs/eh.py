@@ -69,6 +69,14 @@ class ErrorHandler:
             except discord.Forbidden:
                 pass
 
+        if isinstance(exception, discord.Forbidden):
+            ctx.command.reset_cooldown(ctx)
+            try:
+                e = self._error_formatter("Error: Im Missing Permissions For That", str(exception))
+                return await ctx.send(embed=e)
+            except discord.Forbidden:
+                pass
+
         ctx.command.reset_cooldown(ctx)
 
         print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
