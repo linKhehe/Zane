@@ -278,7 +278,7 @@ class Imaging:
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png, size=512"), self._invert)
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._invert)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
