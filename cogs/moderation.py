@@ -108,7 +108,7 @@ class Moderation:
 
         e = discord.Embed(
             title=f"Muted: {member.name}",
-            description=f"I muted {member.name} in the\
+            description=f"I muted {member.name} in the \
 {len(success_channels)} channel(s) that I have permissions to mute in!",
             color=self.bot.color
         )
