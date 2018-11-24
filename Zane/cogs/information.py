@@ -1,12 +1,11 @@
 import time
 
 import psutil
-import humanize
 import discord
 from discord.ext import commands
 
-from utils.format import humanized_date, humanized_time_since
-from cogs.image import WandImage as Image
+from Zane.utils.format import humanized_date, humanized_time_since
+from Zane.cogs.image import WandImage as Image
 
 
 class Information:

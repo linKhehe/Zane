@@ -9,7 +9,7 @@ from discord.ext import commands
 import aiohttp
 import discord
 
-from utils.flags import parse_flags
+from Zane.utils.flags import parse_flags
 
 
 class Color(WandColor):
@@ -338,6 +338,7 @@ class Imaging:
         await ctx.send(f"*{duration}ms*\n{ascii_art}")
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
 
 def setup(bot):
     bot.add_cog(Imaging(bot))

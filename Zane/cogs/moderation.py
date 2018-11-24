@@ -77,7 +77,7 @@ class Moderation:
         name="mute"
     )
     @commands.has_permissions(
-        manage_roles=True
+        manage_channels=True
     )
     async def _mute_command(self, ctx, member: discord.Member, time: int = False):
         """
@@ -150,7 +150,7 @@ class Moderation:
         name="unmute"
     )
     @commands.has_permissions(
-        manage_roles=True
+        manage_channels=True
     )
     async def _unmute_command(self, ctx, member: discord.Member):
         """
