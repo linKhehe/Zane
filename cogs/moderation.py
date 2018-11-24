@@ -137,7 +137,11 @@ class Moderation:
 
             e = discord.Embed(
                 title=f"Unmuted: {member.name}",
-                descirption="I unmuted {member.name}."
+                description="I unmuted {member.name}.",
+                color=self.bot.color
+            )
+            e.set_thumbnail(
+                url=member.avatar_url_as(static_format="png", size=64)
             )
 
             await ctx.send(member.mention, embed=e)
@@ -169,10 +173,14 @@ class Moderation:
 
         e = discord.Embed(
             title=f"Unmuted: {member.name}",
-            descirption="I unmuted {member.name}."
+            description="I unmuted {member.name}.",
+            color=self.bot.color
+        )
+        e.set_thumbnail(
+            url=member.avatar_url_as(static_format="png", size=64)
         )
 
-        await ctx.send(member.mention, embed=e)
+        await ctx.send(embed=e)
 
 
 def setup(bot):
