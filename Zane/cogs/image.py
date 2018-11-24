@@ -107,14 +107,14 @@ class Imaging:
     def __init__(self, bot):
         self.bot = bot
 
-    async def image_function_on_link(self, link: str, image_function: function):
+    async def _image_function_on_link(self, link: str, image_function: function):
         start = time.perf_counter()
 
         image = await WandImage.from_link(link)
 
         with image:
 
-            executor = functools.partial(function, image)
+            executor = functools.partial(image_function, image)
 
             file = await self.bot.loop.run_in_executor(None, executor)
 
