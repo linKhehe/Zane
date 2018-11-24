@@ -239,19 +239,8 @@ class Imaging:
             member = ctx.author
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
-        start = time.perf_counter()
 
-        avatar_url = member.avatar_url_as(format="png", size=512)
-        image = await WandImage.from_link(avatar_url)
-
-        executor = functools.partial(self._magic, image)
-
-        # keep in mind that the output of _magic is ...
-        # WandImage.to_discord_file so we can send them right away.
-        file = await self.bot.loop.run_in_executor(None, executor)
-
-        end = time.perf_counter()
-        duration = round((end - start) * 1000, 2)
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._magic)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -308,7 +297,6 @@ class Imaging:
             member = ctx.author
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
-        start = time.perf_counter()
 
         invert = False
         brightness = 100
@@ -344,14 +332,9 @@ class Imaging:
             elif size < 2:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
-        avatar_url = member.avatar_url_as(format="png", size=256)
-        image = await WandImage.from_link(avatar_url)
-
-        executor = functools.partial(self._ascii, image, invert, brightness, size)
-        ascii_art = await self.bot.loop.run_in_executor(None, executor)
-
-        end = time.perf_counter()
-        duration = round((end - start) * 1000, 2)
+        ascii_art, duration = await self._image_function_on_link(
+            member.avatar_url_as(format="png", size=64), self._ascii
+        )
 
         await ctx.send(f"*{duration}ms*\n{ascii_art}")
 
