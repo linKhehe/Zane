@@ -161,7 +161,7 @@ class Imaging:
         Converts image into an ascii art string.
 
         :param image: The :class WandImage: to convert to ascii.
-        :param inverted: A :type bool: determining whether or not to invert.
+            :param inverted: A :type bool: determining whether or not to invert.
         :param brightness: A :type int: determining the brightness.
         :param size: A :type int: determining the size.
         :return: A :type str: containing the art.
