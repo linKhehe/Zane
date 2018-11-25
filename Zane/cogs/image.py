@@ -112,7 +112,7 @@ class Imaging:
 
         image = await WandImage.from_link(link)
 
-        xecutor = functools.partial(image_function, image)
+        executor = functools.partial(image_function, image)
         if args:
             executor = functools.partial(image_function, image, args)
 
