@@ -114,7 +114,7 @@ class Imaging:
 
         executor = functools.partial(image_function, image)
         if args:
-            executor = functools.partial(image_function, image, args)
+            executor = functools.partial(image_function, image, *args)
 
         file = await self.bot.loop.run_in_executor(None, executor)
 
