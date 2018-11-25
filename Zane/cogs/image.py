@@ -107,12 +107,14 @@ class Imaging:
     def __init__(self, bot):
         self.bot = bot
 
-    async def _image_function_on_link(self, link: str, image_function):
+    async def _image_function_on_link(self, link: str, image_function, *args):
         start = time.perf_counter()
 
         image = await WandImage.from_link(link)
 
-        executor = functools.partial(image_function, image)
+        xecutor = functools.partial(image_function, image)
+        if args:
+            executor = functools.partial(image_function, image, args)
 
         file = await self.bot.loop.run_in_executor(None, executor)
 
@@ -120,6 +122,22 @@ class Imaging:
         duration = round((end - start) * 1000, 2)
 
         return file, duration
+
+    @staticmethod
+    def _thonk(image: WandImage):
+        """
+        Add the thonk hand image on top of the provided image.
+
+        :param image:
+        :return:
+        """
+        with WandImage(filename="assets/thonk_hand.png") as thonk:
+            with image:
+                thonk.resize(image.width, image.height)
+                image.composite(thonk, 0, 0)
+                ret = image.to_discord_file("thonk.png")
+
+        return ret
 
     @staticmethod
     def _wasted(image: WandImage):
@@ -177,7 +195,7 @@ class Imaging:
     def _magic(image: WandImage):
         """
         Content aware scale an image. Made for use with _magic_command.
-        :param WandImage:
+        :param image:
         :return discord.File:
         """
         # overly content-aware-scale it
@@ -205,7 +223,7 @@ class Imaging:
     def _invert(image: WandImage):
         """
         Invert an image. Made for use with _invert_command.
-        :param WandImage:
+        :param image:
         :return discord.File:
         """
         with image:
@@ -230,7 +248,6 @@ class Imaging:
             ret = image.to_discord_file("expand_dong.png")
 
         return ret
-
 
     @commands.command(
         name="magic",
@@ -347,7 +364,7 @@ class Imaging:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
         ascii_art, duration = await self._image_function_on_link(
-            member.avatar_url_as(format="png", size=64), self._ascii
+            member.avatar_url_as(format="png", size=64), self._ascii, invert, brightness, size
         )
 
         await ctx.send(f"*{duration}ms*\n{ascii_art}")
@@ -405,6 +422,37 @@ class Imaging:
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
         file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._wasted)
+
+        await ctx.send(f"*{duration}ms*", file=file)
+
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
+    @commands.command(
+        name="thonk",
+        aliases=[
+            'thonkify',
+            'thonking',
+            'think',
+            'thinkify',
+            'thinking'
+        ]
+    )
+    @commands.cooldown(
+        rate=1,
+        per=20,
+        type=commands.BucketType.user
+    )
+    async def _thonk_command(self, ctx, member: discord.Member = None):
+        """
+        Add a gta wasted picture to a member's profile picture.
+        If the member parameter is not fulfilled, the selected member will be you.
+        """
+        if member is None:
+            member = ctx.author
+
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._thonk)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
