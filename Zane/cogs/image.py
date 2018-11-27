@@ -124,6 +124,25 @@ class Imaging:
         return file, duration
 
     @staticmethod
+    def _spin(image: WandImage, modifier: int = 1):
+        """
+        Spin an image.
+
+        :param image:
+        :return WandImage: Returns a gif.
+        """
+        with image as source:
+            with WandImage(height=image.height, width=image.width) as output:
+                for degree in range(0, 360, modifier):
+                    frame = source.rotate(degree)
+                    output.sequence.append(frame)
+                output.format = "gif"
+                ret = output.to_discord_file("spin.gif")
+
+        return ret
+
+
+    @staticmethod
     def _thonk(image: WandImage):
         """
         Add the thonk hand image on top of the provided image.
