@@ -8,95 +8,8 @@ import aiohttp
 import discord
 
 from utils.flags import parse_flags
-from utils.image import Image as WandImageBase
+from utils.image import Image as WandImage
 from utils.image import Color as WandColor
-
-
-class Color(WandColor):
-    """
-    A little subclass of wand.color.Color
-
-    Adds functionality for ascii art.
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.ascii_characters = {
-            300: "@",
-            275: "#",
-            250: ";",
-            225: "+",
-            200: "=",
-            175: ":",
-            150: "-",
-            125: "\"",
-            100: "'",
-            75: ",",
-            50: ".",
-            25: " ",
-            0: " "
-        }
-        super().__init__(*args, **kwargs)
-
-    @property
-    def ascii_character(self):
-        value = self.red + self.green + self.blue
-        value *= 100
-        return self.ascii_characters[int(math.ceil(value / 25.) * 25)]
-
-
-class WandImage(WandImageBase):
-    """
-    A little custom version of wand.image.WandImage.
-
-    Adds functionality such as...
-
-        from_link(link)
-            - For creating an image from a link using aiohttp.
-
-        to_bytes_io()
-            - For saving an image to a BytesIO object.
-
-        to_discord_file()
-            - For saving an image to a discord.File object.
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @classmethod
-    async def from_link(cls, link: str = None):
-        if link is None:
-            return cls().blank(width=0, height=0)
-
-        link.strip("<>")
-
-        # Start a client session and get the link. Read the link to response variable.
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link) as response:
-                response = await response.read()
-
-        # Convert the response the a byte object
-        byte_response = BytesIO(response)
-        byte_response.seek(0)
-
-        # Start an image object with the bytes.
-        image = cls(file=byte_response)
-
-        return image
-
-    def to_bytes_io(self):
-        bytes_io = BytesIO()
-
-        # save self to the bytes io and seek to the beginning
-        self.save(file=bytes_io)
-        bytes_io.seek(0)
-        return bytes_io
-
-    def to_discord_file(self, filename: str):
-        bytes_io = self.to_bytes_io()
-        file = discord.File(bytes_io, filename=filename)
-        return file
 
 
 class Imaging:
@@ -111,6 +24,20 @@ class Imaging:
         start = time.perf_counter()
 
         image = await WandImage.from_link(link)
+
+        executor = functools.partial(image_function, image)
+        if args:
+            executor = functools.partial(image_function, image, *args)
+
+        file = await self.bot.loop.run_in_executor(None, executor)
+
+        end = time.perf_counter()
+        duration = round((end - start) * 1000, 2)
+
+        return file, duration
+    
+    async def _image_function(self, image: WandImage, image_function, *args):
+        start = time.perf_counter()
 
         executor = functools.partial(image_function, image)
         if args:
@@ -501,6 +428,59 @@ class Imaging:
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
-
+    @commands.command(
+        name="effects",
+        aliases=[
+            "effect",
+            "edit",
+            "stack"
+        ]
+    async def _effect_stack_command(self, ctx, member: discord.Member, *effect_names):
+        """
+        This command allows you to stack multiple image effects, all the effects found in the other commands, on to one image.
+        The list of args can be found by replacing the member argument with "list" or "all". If the member you are trying to select uses one of those reserved terms, just tag them or use their user id.
+        """
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+        
+        effects = []
+        
+        for effect_name in effect_names:
+            effect_name = effect_name.lower()
+            
+            if effect_name in ["magic", "magik", "magick"]:
+                effects.append(self._magic)
+            elif effect_name in ["invert", "negate"]:
+                effects.append(self._invert)
+            elif effect_name in ["invert", "negate"]:
+                effects.append(self._invert)
+            elif effect_name in ["expand", "expand_dong"]:
+                effects.append(self._expand)
+            elif effect_name in ["wasted", "gta", "gtawasted"]:
+                effects.append(self._wasted)
+            elif effect_name in ["think", "thinking", "thonk", "thonking", "thinkify", "thonkify"]:
+                effects.append(self._thonk)
+            elif effect_name in ["deepfry", "deep-fry"]:
+                effects.append(self._deepfry)
+            else:
+                raise commands.BadArgument(f"I couldn't find an effect by the name \"{effect_name}\". Use effect list for a list of effects")
+        
+        effects = list(set(effects))
+        total_ms = 0
+        
+        for i, effect in enumerate(effects):
+            if i == 0:
+                image = await Image.from_link(ctx.author.avatar_url_as(format="png", size=256))
+            b_io, ms = await self._image_function(image, effect)
+            image = WandImage.from_bytes_io(b_io)
+            total_ms += ms
+        
+        file = image.to_discord_file("stacked_effects.png")
+        
+        await ctx.send(f"*{total_ms}*", file=file)
+        
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+            
+                
+        
 def setup(bot):
     bot.add_cog(Imaging(bot))
