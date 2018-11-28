@@ -47,6 +47,9 @@ class Image(WandImageBase):
 
         from_link(link)
             - For creating an image from a link using aiohttp.
+            
+        from_bytes_io(BytesIO)
+            - For creating an image from a bytes io object. Not very useful but saves some lines of code.
 
         to_bytes_io()
             - For saving an image to a BytesIO object.
@@ -80,6 +83,16 @@ class Image(WandImageBase):
 
         return image
 
+    @classmethod
+    async def from_bytes_io(self, bytes_io : BytesIO):
+        # Convert the response the a byte object
+        bytes_io.seek(0)
+
+        # Start an image object with the bytes.
+        image = cls(file=bytes_io)
+
+        return image
+    
     def to_bytes_io(self):
         bytes_io = BytesIO()
 
