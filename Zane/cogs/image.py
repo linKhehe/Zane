@@ -3,13 +3,13 @@ import functools
 import time
 import math
 
-from wand.image import Image as WandImageBase
-from wand.color import Color as WandColor
 from discord.ext import commands
 import aiohttp
 import discord
 
 from utils.flags import parse_flags
+from utils.image import Image as WandImageBase
+from utils.image import Color as WandColor
 
 
 class Color(WandColor):
@@ -124,23 +124,19 @@ class Imaging:
         return file, duration
 
     @staticmethod
-    def _spin(image: WandImage, modifier: int = 1):
+    def _deepfry(image: WandImage):
         """
-        Spin an image.
+        Deepfry an image.
 
         :param image:
-        :return WandImage: Returns a gif.
+        :return:
         """
-        with image as source:
-            with WandImage(height=image.height, width=image.width) as output:
-                for degree in range(0, 360, modifier):
-                    frame = source.rotate(degree)
-                    output.sequence.append(frame)
-                output.format = "gif"
-                ret = output.to_discord_file("spin.gif")
+        with image:
+            image.compression_quality = 2
+            image.modulate(saturation=700)
+            ret = image.to_discord_file("deep-fry.png")
 
         return ret
-
 
     @staticmethod
     def _thonk(image: WandImage):
@@ -472,6 +468,34 @@ class Imaging:
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
         file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._thonk)
+
+        await ctx.send(f"*{duration}ms*", file=file)
+
+        await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
+    @commands.command(
+        name="deepfry",
+        aliases=[
+            "deep-fry",
+            "deepfryer"
+        ]
+    )
+    @commands.cooldown(
+        rate=1,
+        per=20,
+        type=commands.BucketType.user
+    )
+    async def _deep_fry_command(self, ctx, member: discord.Member = None):
+        """
+        Deepfry a member's profile picture.
+        If the member parameter is not fulfilled, the selected member will be you.
+        """
+        if member is None:
+            member = ctx.author
+
+        await ctx.message.add_reaction(self.bot.loading_emoji)
+
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="jpeg", size=512), self._deepfry)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
