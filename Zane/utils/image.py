@@ -84,7 +84,7 @@ class Image(WandImageBase):
         return image
 
     @classmethod
-    async def from_bytes_io(self, bytes_io : BytesIO):
+    async def from_bytes_io(cls, bytes_io : BytesIO):
         # Convert the response the a byte object
         bytes_io.seek(0)
 
