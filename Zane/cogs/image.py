@@ -9,7 +9,6 @@ import discord
 
 from utils.flags import parse_flags
 from utils.image import Image as WandImage
-from utils.image import Color as WandColor
 
 
 class Imaging:
@@ -25,17 +24,13 @@ class Imaging:
 
         image = await WandImage.from_link(link)
 
-        executor = functools.partial(image_function, image)
-        if args:
-            executor = functools.partial(image_function, image, *args)
-
-        file = await self.bot.loop.run_in_executor(None, executor)
+        file, fake_ms = await self._image_function(image, image_function, *args)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
 
         return file, duration
-    
+
     async def _image_function(self, image: WandImage, image_function, *args):
         start = time.perf_counter()
 
@@ -54,11 +49,12 @@ class Imaging:
     def _deepfry(image: WandImage):
         """
         Deepfry an image.
-
         :param image:
         :return:
         """
         with image:
+            if image.format != "jpeg":
+                image.format = "jpeg"
             image.compression_quality = 2
             image.modulate(saturation=700)
             ret = image.to_discord_file("deep-fry.png")
@@ -69,7 +65,6 @@ class Imaging:
     def _thonk(image: WandImage):
         """
         Add the thonk hand image on top of the provided image.
-
         :param image:
         :return:
         """
@@ -85,7 +80,6 @@ class Imaging:
     def _wasted(image: WandImage):
         """
         Add the wasted image on top of the provided image.
-
         :param image:
         :return:
         """
@@ -101,7 +95,6 @@ class Imaging:
     def _ascii(image: WandImage, inverted: bool = False, brightness: int = 100, size: int = 62):
         """
         Converts image into an ascii art string.
-
         :param image: The :class WandImage: to convert to ascii.
             :param inverted: A :type bool: determining whether or not to invert.
         :param brightness: A :type int: determining the brightness.
@@ -257,12 +250,10 @@ class Imaging:
         """
         Convert a member's avatar into ascii art.
         If the member parameter is not fulfilled, it will select you.
-
         Optional Flags:
             -i , --invert Invert the image.
             -b=100, --brightness=100 Change the brightness of the starting image.
             -s=62, --size=62 Change the size of the ascii art. Min is 2 max is 62.
-
         Example Flag Usage:
             ascii [member] -i --brightness=100 -s=62
         """
@@ -422,7 +413,8 @@ class Imaging:
 
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="jpeg", size=512), self._deepfry)
+        file, duration = await self._image_function_on_link(member.avatar_url_as(format="jpeg", size=512),
+                                                            self._deepfry)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -435,18 +427,19 @@ class Imaging:
             "edit",
             "stack"
         ]
+    )
     async def _effect_stack_command(self, ctx, member: discord.Member, *effect_names):
         """
         This command allows you to stack multiple image effects, all the effects found in the other commands, on to one image.
         The list of args can be found by replacing the member argument with "list" or "all". If the member you are trying to select uses one of those reserved terms, just tag them or use their user id.
         """
         await ctx.message.add_reaction(self.bot.loading_emoji)
-        
+
         effects = []
-        
+
         for effect_name in effect_names:
             effect_name = effect_name.lower()
-            
+
             if effect_name in ["magic", "magik", "magick"]:
                 effects.append(self._magic)
             elif effect_name in ["invert", "negate"]:
@@ -462,25 +455,30 @@ class Imaging:
             elif effect_name in ["deepfry", "deep-fry"]:
                 effects.append(self._deepfry)
             else:
-                raise commands.BadArgument(f"I couldn't find an effect by the name \"{effect_name}\". Use effect list for a list of effects")
-        
-        effects = list(set(effects))
+                raise commands.BadArgument(
+                    f"I couldn't find an effect by the name \"{effect_name}\". Use effect list for a list of effects")
+
+        non_checked_effects = effects
+        effects = []
+
+        for i in non_checked_effects:
+            if i not in effects:
+                effects.append(i)
+
         total_ms = 0
-        
+
         for i, effect in enumerate(effects):
             if i == 0:
-                image = await Image.from_link(ctx.author.avatar_url_as(format="png", size=256))
+                image = await WandImage.from_link(member.avatar_url_as(format="png", size=256))
             b_io, ms = await self._image_function(image, effect)
-            image = WandImage.from_bytes_io(b_io)
+            image = await WandImage.from_bytes_io(b_io.fp)
             total_ms += ms
-        
+
         file = image.to_discord_file("stacked_effects.png")
-        
+
         await ctx.send(f"*{total_ms}*", file=file)
-        
+
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
-            
-                
-        
+
 def setup(bot):
     bot.add_cog(Imaging(bot))
