@@ -18,6 +18,8 @@ class Imaging:
 
     def __init__(self, bot):
         self.bot = bot
+        
+        # this is here so i can creat the pr without adding code. this will be removed when i commit the things that actually matter.
 
     async def _image_function_on_link(self, link: str, image_function, *args):
         start = time.perf_counter()
