@@ -38,6 +38,7 @@ class Zane(commands.AutoShardedBot):
         ]
         self.color = discord.Color.blue().value
 
+        self.accept_commands = False
         self.init_time = datetime.datetime.utcnow()
         self.owner_ids = [217462890364403712, 455289384187592704]
         super().__init__(command_prefix=self.prefix)
@@ -63,6 +64,10 @@ class Zane(commands.AutoShardedBot):
     async def prefix(self, bot, message):
         return commands.when_mentioned_or(*self.prefixes)(bot, message)
 
+    async def on_message(self, message):
+        if self.accept_commands:
+            await commands.process_commands(message)
+    
     def run(self, token: str):
         for cog in self.bot_cogs:
             try:
@@ -92,7 +97,7 @@ Guild Count: {len(self.guilds)}
 User Count: {len(list(self.get_all_members()))}""")
         self.loop.create_task(self.set_status())
         self.app_info = await self.application_info()
-        await asyncio.sleep(120)
+        self.accept_commands = True
 
     async def is_owner(self, user):
         if user.id in self.owner_ids:
