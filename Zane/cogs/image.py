@@ -1,10 +1,9 @@
-from io import BytesIO
 import functools
 import time
 import math
+import copy
 
 from discord.ext import commands
-import asyncio
 import discord
 
 from utils.flags import parse_flags
@@ -30,44 +29,41 @@ class Imaging:
                     aliases.append(command.name)
                     self.valid_effect_names.update({command.name: aliases})
                     self.image_cache.update({command.name: {}})
+                if command.name in ["ascii"]:
+                    self.image_cache.update({command.name: {}})
 
     async def on_member_update(self, before, after):
         if before.avatar_url != after.avatar_url:
             for members in self.image_cache.values():
-                print(members)
                 try:
-                    print("popped")
-                    members.pop(before)
-                    members.pop(after)
-                    print(members)
+                    members.pop(after.id)
                 except KeyError:
-                    print("passed")
                     pass
 
     async def _in_cache(self, command, member: discord.User):
         command_cache = self.image_cache[command.name]
-        if member in command_cache.keys():
+        if member.id in command_cache.keys():
             return True
         return False
 
     async def _add_to_cache(self, command, member: discord.User, file):
         command_cache = self.image_cache[command.name]
-        command_cache.update({member: file})
+        command_cache.update({member.id: {"avatar_url": member.avatar_url, "file": file}})
 
     async def _pull_from_cache(self, command, member: discord.User):
-        return self.image_cache[command.name][member]
+        return copy.deepcopy(self.image_cache[command.name][member.id]["file"])
 
     async def _image_function_on_link(self, link: str, image_function, *args):
         start = time.perf_counter()
 
         image = await WandImage.from_link(link)
 
-        file, fake_ms = await self._image_function(image, image_function, *args)
+        file, fake_ms, b_io = await self._image_function(image, image_function, *args)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
 
-        return file, duration
+        return file, duration, b_io
 
     async def _image_function(self, image: WandImage, image_function, *args):
         start = time.perf_counter()
@@ -76,12 +72,12 @@ class Imaging:
         if args:
             executor = functools.partial(image_function, image, *args)
 
-        file = await self.bot.loop.run_in_executor(None, executor)
+        file, b_io = await self.bot.loop.run_in_executor(None, executor)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
 
-        return file, duration
+        return file, duration, b_io
 
     @staticmethod
     def _deepfry(image: WandImage):
@@ -96,8 +92,9 @@ class Imaging:
             image.compression_quality = 2
             image.modulate(saturation=700)
             ret = image.to_discord_file("deep-fry.png")
+            b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     @staticmethod
     def _thonk(image: WandImage):
@@ -111,8 +108,9 @@ class Imaging:
                 thonk.resize(image.width, image.height)
                 image.composite(thonk, 0, 0)
                 ret = image.to_discord_file("thonk.png")
+                b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     @staticmethod
     def _wasted(image: WandImage):
@@ -126,8 +124,9 @@ class Imaging:
                 wasted.resize(image.width, image.height)
                 image.composite(wasted, 0, 0)
                 ret = image.to_discord_file("wasted.png")
+                b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     @staticmethod
     def _ascii(image: WandImage, inverted: bool = False, brightness: int = 100, size: int = 62):
@@ -162,7 +161,7 @@ class Imaging:
 
             ascii_art += "```"
 
-        return ascii_art
+        return ascii_art, ascii_art
 
     @staticmethod
     def _magic(image: WandImage):
@@ -189,8 +188,9 @@ class Imaging:
             image.resize(256, 256)
 
             ret = image.to_discord_file("magik.png")
+            b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     @staticmethod
     def _invert(image: WandImage):
@@ -202,8 +202,9 @@ class Imaging:
         with image:
             image.negate()
             ret = image.to_discord_file(filename="inverted.png")
+            b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     # Everything from here on is a command.
     # Commands are named with _name_command
@@ -219,8 +220,9 @@ class Imaging:
             image.liquid_rescale(int(image.width * 0.5), image.height)
             image.liquid_rescale(int(image.width * 3.5), image.height, delta_x=1)
             ret = image.to_discord_file("expand_dong.png")
+            b_io = image.to_bytes_io()
 
-        return ret
+        return ret, b_io
 
     @commands.command(
         name="magic",
@@ -242,9 +244,23 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._magic)
+        file, duration, b_io = await self._image_function_on_link(
+            member.avatar_url_as(format="jpeg", size=512),
+            self._magic
+        )
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -269,9 +285,23 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._invert)
+        file, duration, b_io = await self._image_function_on_link(
+            member.avatar_url_as(format="jpeg", size=512),
+            self._invert
+        )
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -334,7 +364,7 @@ class Imaging:
             elif size < 2:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
-        ascii_art, duration = await self._image_function_on_link(
+        ascii_art, duration, b_io = await self._image_function_on_link(
             member.avatar_url_as(format="png", size=64), self._ascii, invert, brightness, size
         )
 
@@ -362,9 +392,23 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=256), self._expand)
+        file, duration, b_io = await self._image_function_on_link(
+            member.avatar_url_as(format="jpeg", size=512),
+            self._expand
+        )
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -390,9 +434,23 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._wasted)
+        file, duration, b_io = await self._image_function_on_link(
+            member.avatar_url_as(format="jpeg", size=512),
+            self._wasted
+        )
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -421,9 +479,23 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="png", size=512), self._thonk)
+        file, duration, b_io = await self._image_function_on_link(
+            member.avatar_url_as(format="jpeg", size=512),
+            self._thonk
+        )
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -449,10 +521,21 @@ class Imaging:
         if member is None:
             member = ctx.author
 
+        if await self._in_cache(ctx.command, member):
+            await ctx.message.add_reaction(self.bot.loading_emoji)
+
+            b_io = await self._pull_from_cache(ctx.command, member)
+
+            await ctx.send(f"*0ms*", file=discord.File(b_io, filename="deepfry.png"))
+
+            return await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
-        file, duration = await self._image_function_on_link(member.avatar_url_as(format="jpeg", size=512),
+        file, duration, b_io = await self._image_function_on_link(member.avatar_url_as(format="jpeg", size=512),
                                                             self._deepfry)
+
+        await self._add_to_cache(ctx.command, member, b_io)
 
         await ctx.send(f"*{duration}ms*", file=file)
 
@@ -507,7 +590,7 @@ trying to select uses one of those reserved terms, just tag them or use their us
         for i, effect in enumerate(effects):
             if i == 0:
                 image = await WandImage.from_link(member.avatar_url_as(format="png", size=256))
-            b_io, ms = await self._image_function(image, effect)
+            b_io, ms, garb = await self._image_function(image, effect)
             image = await WandImage.from_bytes_io(b_io.fp)
             total_ms += ms
 
