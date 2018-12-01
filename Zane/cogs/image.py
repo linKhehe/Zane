@@ -4,11 +4,12 @@ import time
 import math
 
 from discord.ext import commands
-import aiohttp
+import asyncio
 import discord
 
 from utils.flags import parse_flags
 from utils.image import Image as WandImage
+from utils.image import Color
 
 
 class Imaging:
@@ -18,8 +19,43 @@ class Imaging:
 
     def __init__(self, bot):
         self.bot = bot
-        
-        # this is here so i can creat the pr without adding code. this will be removed when i commit the things that actually matter.
+        self.valid_effect_names = {}
+        self.image_cache = {}
+
+    async def on_ready(self):
+        for command in self.bot.commands:
+            if command.cog_name == "Imaging":
+                if command.name not in ["effect", "effects", "ascii"]:
+                    aliases = command.aliases.copy()
+                    aliases.append(command.name)
+                    self.valid_effect_names.update({command.name: aliases})
+                    self.image_cache.update({command.name: {}})
+
+    async def on_member_update(self, before, after):
+        if before.avatar_url != after.avatar_url:
+            for members in self.image_cache.values():
+                print(members)
+                try:
+                    print("popped")
+                    members.pop(before)
+                    members.pop(after)
+                    print(members)
+                except KeyError:
+                    print("passed")
+                    pass
+
+    async def _in_cache(self, command, member: discord.User):
+        command_cache = self.image_cache[command.name]
+        if member in command_cache.keys():
+            return True
+        return False
+
+    async def _add_to_cache(self, command, member: discord.User, file):
+        command_cache = self.image_cache[command.name]
+        command_cache.update({member: file})
+
+    async def _pull_from_cache(self, command, member: discord.User):
+        return self.image_cache[command.name][member]
 
     async def _image_function_on_link(self, link: str, image_function, *args):
         start = time.perf_counter()
@@ -423,17 +459,18 @@ class Imaging:
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
     @commands.command(
-        name="effects",
+        name="effect",
         aliases=[
-            "effect",
             "edit",
             "stack"
         ]
     )
     async def _effect_stack_command(self, ctx, member: discord.Member, *effect_names):
         """
-        This command allows you to stack multiple image effects, all the effects found in the other commands, on to one image.
-        The list of args can be found by replacing the member argument with "list" or "all". If the member you are trying to select uses one of those reserved terms, just tag them or use their user id.
+        This command allows you to stack multiple image effects, all the effects found in the other commands, \
+on to one image.
+        The list of args can be found by replacing the member argument with the command effects. If the member you are \
+trying to select uses one of those reserved terms, just tag them or use their user id.
         """
         await ctx.message.add_reaction(self.bot.loading_emoji)
 
@@ -442,19 +479,17 @@ class Imaging:
         for effect_name in effect_names:
             effect_name = effect_name.lower()
 
-            if effect_name in ["magic", "magik", "magick"]:
+            if effect_name in self.valid_effect_names["magic"]:
                 effects.append(self._magic)
-            elif effect_name in ["invert", "negate"]:
+            elif effect_name in self.valid_effect_names["invert"]:
                 effects.append(self._invert)
-            elif effect_name in ["invert", "negate"]:
-                effects.append(self._invert)
-            elif effect_name in ["expand", "expand_dong"]:
+            elif effect_name in self.valid_effect_names["expand"]:
                 effects.append(self._expand)
-            elif effect_name in ["wasted", "gta", "gtawasted"]:
+            elif effect_name in self.valid_effect_names["wasted"]:
                 effects.append(self._wasted)
-            elif effect_name in ["think", "thinking", "thonk", "thonking", "thinkify", "thonkify"]:
+            elif effect_name in self.valid_effect_names["thonk"]:
                 effects.append(self._thonk)
-            elif effect_name in ["deepfry", "deep-fry"]:
+            elif effect_name in self.valid_effect_names["deepfry"]:
                 effects.append(self._deepfry)
             else:
                 raise commands.BadArgument(
@@ -481,6 +516,19 @@ class Imaging:
         await ctx.send(f"*{total_ms}*", file=file)
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
+
+    @commands.command(
+        name="effects"
+    )
+    async def _effect_stack_list_command(self, ctx):
+        """
+        List the effects that can be used in the effect command. All effects are also valid command names.
+        """
+
+        await ctx.send(
+            f"Valid effects are *{', '.join(effect for effect in self.valid_effect_names.keys())}*."
+        )
+
 
 def setup(bot):
     bot.add_cog(Imaging(bot))
