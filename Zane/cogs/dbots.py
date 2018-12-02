@@ -15,7 +15,7 @@ class DiscordBotsOrgAPI:
     async def _update_stats(self):
         while True:
             try:
-                await self.dbl_py.post_server_count()
+                await self.dbl_py.post_server_count(shard_count=len(self.bot.shards))
             except Exception:
                 pass
             await asyncio.sleep(1800)

@@ -58,7 +58,7 @@ class Imaging:
 
         image = await WandImage.from_link(link)
 
-        file, fake_ms, b_io = await self._image_function(image, image_function, *args)
+        file, _, b_io = await self._image_function(image, image_function, *args)
 
         end = time.perf_counter()
         duration = round((end - start) * 1000, 2)
@@ -364,7 +364,7 @@ class Imaging:
             elif size < 2:
                 raise commands.BadArgument("A passed flag was invalid.\nThe minimum value for size is 2.")
 
-        ascii_art, duration, b_io = await self._image_function_on_link(
+        ascii_art, duration, _ = await self._image_function_on_link(
             member.avatar_url_as(format="png", size=64), self._ascii, invert, brightness, size
         )
 
@@ -590,7 +590,7 @@ trying to select uses one of those reserved terms, just tag them or use their us
         for i, effect in enumerate(effects):
             if i == 0:
                 image = await WandImage.from_link(member.avatar_url_as(format="png", size=256))
-            b_io, ms, garb = await self._image_function(image, effect)
+            b_io, ms, _ = await self._image_function(image, effect)
             image = await WandImage.from_bytes_io(b_io.fp)
             total_ms += ms
 
@@ -600,9 +600,7 @@ trying to select uses one of those reserved terms, just tag them or use their us
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
-    @commands.command(
-        name="effects"
-    )
+    @commands.command(name="effects")
     async def _effect_stack_list_command(self, ctx):
         """
         List the effects that can be used in the effect command. All effects are also valid command names.

@@ -3,14 +3,17 @@ import datetime
 import traceback
 import asyncio
 import asyncpg
+import sys
 
 try:
     import uvloop
 except ImportError:
-    print(
-        """UvLoop is not installed. If you are on linux, install it with "pip install uvloop".
-        If you are on windows, ignore this message.
-        """)
+    if sys.platform == "win32":
+        pass
+    elif sys.platform == "linux":
+        print(
+            """UvLoop is not installed. Please install it with "pip install uvloop".
+            """)
 else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -18,7 +21,7 @@ import discord
 from discord.ext import commands
 
 """
-This is a bot made by ir3#333.
+This is a bot made by ir3#3333.
 """
 
 
@@ -30,7 +33,8 @@ class Zane(commands.AutoShardedBot):
             'cogs.image',
             'cogs.information',
             'cogs.eh',
-            'cogs.moderation'
+            'cogs.moderation',
+            'cogs.dbots'
         ]
         self.prefixes = [
             'za.',
@@ -66,7 +70,7 @@ class Zane(commands.AutoShardedBot):
 
     async def on_message(self, message):
         if self.accept_commands:
-            await commands.process_commands(message)
+            await self.process_commands(message)
     
     def run(self, token: str):
         for cog in self.bot_cogs:
@@ -91,10 +95,10 @@ class Zane(commands.AutoShardedBot):
         print(f"""Bot Started:
 
 ID: {self.user.id}
-UserName: {self.user.name}
+Username: {self.user.name}
 Discriminator: {self.user.discriminator}
 Guild Count: {len(self.guilds)}
-User Count: {len(list(self.get_all_members()))}""")
+User Count: {len(self.users)}""")
         self.loop.create_task(self.set_status())
         self.app_info = await self.application_info()
         self.accept_commands = True

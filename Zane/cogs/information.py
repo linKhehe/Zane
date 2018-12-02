@@ -265,12 +265,7 @@ class Information:
 
         await ctx.message.remove_reaction(self.bot.loading_emoji, ctx.me)
 
-    @commands.command(
-        name="ping",
-        aliases=[
-            "ms"
-        ]
-    )
+    @commands.command(name="ping", aliases=['ms'])
     async def _ping_command(self, ctx):
         """
         Return the ping for the bot.
