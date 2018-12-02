@@ -8,12 +8,8 @@ class Moderation:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
-        name="kick"
-    )
-    @commands.has_permissions(
-        kick_members=True
-    )
+    @commands.command(name="kick")
+    @commands.has_permissions(kick_members=True)
     async def _kick_command(self, ctx, member: discord.Member):
         """
         Kick a member from the server.
@@ -30,12 +26,8 @@ class Moderation:
 
         await ctx.send(embed=e)
 
-    @commands.command(
-        name="ban"
-    )
-    @commands.has_permissions(
-        ban_members=True
-    )
+    @commands.command(name="ban")
+    @commands.has_permissions(ban_members=True)
     async def _ban_command(self, ctx, member: discord.Member, time: int = False):
         """
         Ban a member from the server.
@@ -73,12 +65,8 @@ class Moderation:
             except discord.Forbidden:
                 pass
 
-    @commands.command(
-        name="mute"
-    )
-    @commands.has_permissions(
-        manage_channels=True
-    )
+    @commands.command(name="mute")
+    @commands.has_permissions(manage_channels=True)
     async def _mute_command(self, ctx, member: discord.Member, time: int = False):
         """
         Mute a member in all text/voice channels.
@@ -146,12 +134,8 @@ class Moderation:
 
             await ctx.send(member.mention, embed=e)
 
-    @commands.command(
-        name="unmute"
-    )
-    @commands.has_permissions(
-        manage_channels=True
-    )
+    @commands.command(name="unmute")
+    @commands.has_permissions(manage_channels=True)
     async def _unmute_command(self, ctx, member: discord.Member):
         """
         Unmute a member.
