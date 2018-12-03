@@ -199,7 +199,7 @@ class Information:
     )
     async def _created_command(self, ctx, member: discord.Member = None):
         """
-        Return when a member joined this discord.
+        Return when a member joined discord.
         If the member argument isn't fulfilled, it will select you.
         """
         if member is None:
