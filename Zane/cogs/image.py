@@ -80,37 +80,6 @@ class Imaging:
         return file, duration, b_io
 
     @staticmethod
-    def _sort(image: WandImage):
-        """
-        Sort the pixels in an image by hue.
-        :param image:
-        :return:
-        """
-        image_colors = []
-        with image:
-            image.sample(60, 60)
-            for row in sample:
-                for col in sample:
-                    col = Color(str(col))
-                    hsv = colorsys.rgb_to_hsv(col.r, col.g, col.b)
-                    image_colors.append(hsv)
-                    
-        image_colors.sort(key=lambda x: x[0])
-                    
-        with Drawing() as drawing:
-            for color in image_colors:
-                for x in range(0, 60):
-                    for y in range(0, 60):
-                        drawing.fill_color = color
-                        drawing.color(x, y, 'replace')
-            with WandImage() as output:
-                drawing(output)
-                ret = output.to_discord_file("sorted.png")
-                b_io = output.to_bytes_io()
-        
-        return ret, b_io
-
-    @staticmethod
     def _deepfry(image: WandImage):
         """
         Deepfry an image.
