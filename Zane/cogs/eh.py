@@ -55,7 +55,6 @@ class ErrorHandler:
             try:
                 return await ctx.message.add_reaction("❌")
             except (discord.Forbidden, discord.HTTPException):
-                return
                 try:
                     e = self._error_formatter("Error: Owner Only", "This command is owner only.")
                     return await ctx.send(embed=e)
