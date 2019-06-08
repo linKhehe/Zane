@@ -20,7 +20,7 @@ class Zane(commands.Cog):
         mem = psutil.virtual_memory()
 
         embed = discord.Embed(
-            title="Zane's Statistics",
+            title="zane's Statistics",
             color=self.bot.color
         ).add_field(
             name="CPU Usage",
