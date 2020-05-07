@@ -3,31 +3,33 @@ import traceback
 from discord.ext import commands
 
 
-class Bot(commands.AutoShardedBot):
+class Zane(commands.Bot):
 
-    def __init__(self):
-        self.prefixes = ["za ", "za."]
-        self.color = 0x00ff00
-        self.owners = [217462890364403712]
+    def __init__(self, config):
+        prefixes = getattr(config, "command_prefix", None)
+        if type(prefixes) is not list:
+            prefixes = [prefixes]
 
-        self.initial_cogs = [
-            "jishaku",
-            "zane.cogs.fun",
-            "zane.cogs.utility",
-            "zane.cogs.zane",
-            "zane.cogs.image"
-        ]
+        super().__init__(
+            command_prefix=commands.when_mentioned_or(*prefixes),
+            description=getattr(config, "description", None),
+            owner_id=getattr(config, "owner_id", None),
+            owner_ids=getattr(config, "owner_ids", None)
+        )
 
-        super().__init__(command_prefix=commands.when_mentioned_or(*self.prefixes))
+        self.config = config
+        self.color = getattr(config, "color", 0x0000FF)
 
-    async def on_ready(self):
-        print("Initiated.")
+    def run(self):
+        cogs = ["zane.cogs." + cog for cog in getattr(self.config, "cogs", [])]
+        if getattr(self.config, "load_jishaku", True):
+            cogs.append("jishaku")
 
-    def run(self, *args, **kwargs):
-        for cog in self.initial_cogs:
+        for cog in cogs:
             try:
                 self.load_extension(cog)
-            except Exception:
-                print(f"Error loading {cog}...")
+            except:
+                print(f"Error loading {cog}, traceback below.")
                 traceback.print_exc()
-        super().run(*args, **kwargs)
+
+        super().run(getattr(self.config, "token", None))

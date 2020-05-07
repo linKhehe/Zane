@@ -1,18 +1,3 @@
-# -*- coding: utf-8 -*-
-
-"""
-blissops.numpyops
-=================
-
-Somewhat async image manipulation library
-created for use within the bliss Discord bot.
-Makes use of numpy and wand and takes BytesIO
-as an input and as an output.
-
-:copyright: (c) 2019 Liam (ir-3) H.
-:license: MIT, see LICENSE for more details.
-"""
-
 from io import BytesIO
 
 import skimage
@@ -100,17 +85,3 @@ def _shuffle(img: np.ndarray):
     np.random.shuffle(img)
 
     return img.reshape(shape)
-
-
-def _combine(start: np.ndarray, other: np.ndarray):
-    shape = start.shape
-    start = start.reshape((start.shape[0] * start.shape[1], start.shape[2]))
-    other = other.reshape((other.shape[0] * other.shape[1], other.shape[2]))
-
-    for i in range(1, start.size, 2):
-        try:
-            start[i][0:3] = other[i][0:3]
-        except IndexError:
-            break
-
-    return start.reshape(shape)

@@ -1,18 +1,3 @@
-# -*- coding: utf-8 -*-
-
-"""
-blissops.wandops
-================
-
-Somewhat async image manipulation library
-created for use within the bliss Discord bot.
-Makes use of numpy and wand and takes BytesIO
-as an input and as an output.
-
-:copyright: (c) 2019 Liam (ir-3) H.
-:license: MIT, see LICENSE for more details.
-"""
-
 import os
 from io import BytesIO
 
@@ -27,7 +12,7 @@ async def bytes_to_wand(img_bytes: BytesIO):
 async def wand_to_bytes(img: Image):
     ret = BytesIO()
     img.save(ret)
-    if img.format is not "png":
+    if img.format != "png":
         with Image(blob=ret.getvalue()) as converted:
             converted.format = "png"
             converted.save(ret)
@@ -70,13 +55,13 @@ def _invert(img: Image):
 
 
 def _desat(img: Image, threshold: int = 1):
-    img.modulate(saturation=100-(threshold*50))
+    img.modulate(saturation=100 - (threshold * 50))
 
     return img
 
 
 def _sat(img: Image, threshold: int = 1):
-    img.modulate(saturation=100+(threshold*50))
+    img.modulate(saturation=100 + (threshold * 50))
 
     return img
 
@@ -145,7 +130,7 @@ def _floor(img: Image):
         ]
     )
 
-    img.resize(x*2, y*2)
+    img.resize(x, y)
 
     return img
 
@@ -220,3 +205,32 @@ def _gay(img: Image):
         gay.sample(img.width, img.height)
         img.composite(gay, 0, 0)
     return img
+
+
+def _sphere(img: Image):
+    if os.name == 'nt':
+        slash = "\\"
+    else:
+        slash = "/"
+
+    path = f"{os.path.dirname(os.path.realpath(__file__))}{slash}image_assets{slash}"
+
+    img.save(filename=path + "sphere-in.png")
+
+    sphere = Image(filename=path + "spherical_unified_master.png")
+    sphere.resize(img.width, img.height)
+    sphere.save(filename=path + "spherical_unified.png")
+
+    img.close()
+    sphere.close()
+
+    quote = "\""
+
+    os.system(
+        f"magick convert {quote}{path}sphere-in.png{quote} {quote}{path}spherical_unified.png{quote}  "
+        "( -clone 0,1 -alpha set -compose Distort -composite ) "
+        "( -clone 1   -channel B -separate +channel ) "
+        "( -clone 2,3 -compose HardLight -composite ) "
+        f"( -clone 4,1 -compose DstIn -composite ) -delete 0--2  {quote}{path}sphere-out.png{quote}")
+
+    return Image(filename=path + "sphere-out.png")
