@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS nicks (
+    user_id BIGINT,
+    nick VARCHAR(32) UNIQUE
+);

@@ -19,6 +19,7 @@ class Zane(commands.Bot):
 
         self.config = config
         self.color = getattr(config, "color", 0x0000FF)
+        self.db = None
 
     def run(self):
         cogs = ["zane.cogs." + cog for cog in getattr(self.config, "cogs", [])]

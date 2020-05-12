@@ -1,4 +1,5 @@
 import io
+import os
 
 import aiohttp
 import discord
@@ -24,12 +25,14 @@ class Images(commands.Cog):
             return io.BytesIO(await get.read())
 
     async def cog_before_invoke(self, ctx):
+        await ctx.trigger_typing()
+
         if ctx.message.attachments:
             url = ctx.message.attachments[0].url
         elif ctx.args[2] is not None:
-            url = str(ctx.args[2].avatar_url)
+            url = str(ctx.args[2].avatar_url_as(format="png"))
         else:
-            url = str(ctx.author.avatar_url)
+            url = str(ctx.author.avatar_url_as(format="png"))
 
         ctx.image = await self.save_image(url)
 
@@ -104,6 +107,18 @@ class Images(commands.Cog):
     @commands.command()
     async def sphere(self, ctx, member: discord.Member = None):
         await ctx.send(file=discord.File(await imageops.sphere(ctx.image), "generated.png"))
+
+    @commands.command()
+    async def swirl(self, ctx, member: discord.Member = None):
+        await ctx.send(file=discord.File(await imageops.swirl(ctx.image), "generated.png"))
+
+    @commands.command()
+    async def polaroid(self, ctx, member: discord.Member = None):
+        await ctx.send(file=discord.File(await imageops.polaroid(ctx.image), "generated.png"))
+
+    @commands.command()
+    async def arc(self, ctx, member: discord.Member = None):
+        await ctx.send(file=discord.File(await imageops.arc(ctx.image), "generated.png"))
 
     @commands.command()
     async def ascii(self, ctx, member: discord.Member = None):

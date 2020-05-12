@@ -98,6 +98,7 @@ class ErrorHandler(commands.Cog, name="Error Handler", command_attrs=dict(hidden
 
         if isinstance(exception, commands.CommandInvokeError):
             raise exception.original
+        commands.NotOwner
 
 
 def setup(bot):

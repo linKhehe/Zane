@@ -24,8 +24,8 @@ async def wand_to_bytes(img: Image):
 
 def _magic(img: Image):
     img.liquid_rescale(
-        width=int(img.width * 0.4),
-        height=int(img.height * 0.4),
+        width=int(img.width * 0.5),
+        height=int(img.height * 0.5),
         delta_x=1,
         rigidity=0
     )
@@ -75,13 +75,6 @@ channel(4.28,3.86,6.68,0)/255; max(0,p+pnoise)""")
     return img
 
 
-def _arc(img: Image):
-    img.virtual_pixel = "transparent"
-    img.distort(method='arc', arguments=[360])
-
-    return img
-
-
 def _concave(img: Image):
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
@@ -105,29 +98,14 @@ def _floor(img: Image):
     img.background_color = Color("#81cfe0")
     img.virtual_pixel = "tile"
 
+    img.resize(255, 255)
+
     img.distort(
         method="perspective",
-        arguments=[
-            0,
-            0,
-            20,
-            61,
-
-            90,
-            0,
-            70,
-            63,
-
-            0,
-            90,
-            0,
-            83,
-
-            90,
-            90,
-            85,
-            88
-        ]
+        arguments=(0, 0, 77, 153,
+                   img.height, 0, 179, 153,
+                   0, img.width, 51, 255,
+                   img.height, img.width, 204, 255)
     )
 
     img.resize(x, y)
@@ -207,11 +185,15 @@ def _gay(img: Image):
     return img
 
 
+# noinspection PyInterpreter,PyInterpreter
 def _sphere(img: Image):
     if os.name == 'nt':
         slash = "\\"
     else:
         slash = "/"
+
+    x = max([img.width, img.height])
+    img.resize(x, x)
 
     path = f"{os.path.dirname(os.path.realpath(__file__))}{slash}image_assets{slash}"
 
@@ -234,3 +216,20 @@ def _sphere(img: Image):
         f"( -clone 4,1 -compose DstIn -composite ) -delete 0--2  {quote}{path}sphere-out.png{quote}")
 
     return Image(filename=path + "sphere-out.png")
+
+
+def _swirl(img: Image):
+    img.swirl(200)
+    return img
+
+
+def _polaroid(img: Image):
+    img.polaroid()
+    return img
+
+
+def _arc(img: Image):
+    # img.artifacts["distort:viewport"] = "100x100-50-50"
+    img.virtual_pixel = "tile"
+    img.distort("arc", (360,))
+    return img

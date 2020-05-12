@@ -3,7 +3,7 @@ import functools
 from io import BytesIO
 
 from .wandops import bytes_to_wand, wand_to_bytes, _magic, _emboss, _deepfry, _vaporwave, _floor, _concave, _convex, \
-    _invert, _sat, _desat, _lsd, _posterize, _grayscale, _bend, _edge, _gay, _sphere
+    _invert, _sat, _desat, _lsd, _posterize, _grayscale, _bend, _edge, _gay, _sphere, _swirl, _polaroid, _arc
 from .numpyops import bytes_to_np, np_to_bytes, _sort, _ascii_art, _sobel, _shuffle
 
 loop = asyncio.get_event_loop()
@@ -93,6 +93,18 @@ async def posterize(img_bytes: BytesIO):
     return await wand_to_bytes(img)
 
 
+async def polaroid(img_bytes: BytesIO):
+    img = await bytes_to_wand(img_bytes)
+    img = await run_in_executor(_polaroid, img)
+    return await wand_to_bytes(img)
+
+
+async def arc(img_bytes: BytesIO):
+    img = await bytes_to_wand(img_bytes)
+    img = await run_in_executor(_arc, img)
+    return await wand_to_bytes(img)
+
+
 async def bend(img_bytes: BytesIO):
     img = await bytes_to_wand(img_bytes)
     img = await run_in_executor(_bend, img)
@@ -120,6 +132,12 @@ async def ascii_art(img_bytes: BytesIO):
 async def gay(img_bytes: BytesIO):
     img = await bytes_to_wand(img_bytes)
     img = await run_in_executor(_gay, img)
+    return await wand_to_bytes(img)
+
+
+async def swirl(img_bytes: BytesIO):
+    img = await bytes_to_wand(img_bytes)
+    img = await run_in_executor(_swirl, img)
     return await wand_to_bytes(img)
 
 
