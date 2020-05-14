@@ -120,13 +120,14 @@ class Images(commands.Cog):
     async def arc(self, ctx, member: discord.Member = None):
         await ctx.send(file=discord.File(await imageops.arc(ctx.image), "generated.png"))
 
-    @commands.command()
-    async def ascii(self, ctx, member: discord.Member = None):
-        async with ctx.typing():
-            art = await imageops.ascii_art(ctx.image)
-            async with self.session.post("https://mystb.in/documents", data=art) as post:
-                key = (await post.json())["key"]
-            await ctx.send(f"https://mystb.in/{key}.txt")
+    # On hold until I no longer have to send data to a third party
+    # @commands.command()
+    # async def ascii(self, ctx, member: discord.Member = None):
+    #     async with ctx.typing():
+    #         art = await imageops.ascii_art(ctx.image)
+    #         async with self.session.post("https://mystb.in/documents", data=art) as post:
+    #             key = (await post.json())["key"]
+    #         await ctx.send(f"https://mystb.in/{key}.txt")
 
 
 def setup(bot):

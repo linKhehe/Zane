@@ -44,6 +44,10 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True)):
         await ctx.me.edit(nick=nick)
         await ctx.send("Nick updated.")
 
+    @commands.command(aliases=["stop", "logout", "exit"])
+    async def quit(self, ctx):
+        await self.bot.logout()
+
 
 def setup(bot):
     bot.add_cog(Owner(bot))

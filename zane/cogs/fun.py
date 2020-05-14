@@ -5,13 +5,6 @@ from discord.ext import commands
 
 class Fun(commands.Cog):
 
-    OWO_MAP = {
-        "r": "w",
-        "l": "y",
-        "R": "Ww",
-        "L": "Y"
-    }
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -27,6 +20,10 @@ class Fun(commands.Cog):
             message = messages[len(messages) - 1]
             phrase = message.clean_content
         return phrase
+
+    @commands.command()
+    async def mock(self, ctx, text: str = None):
+        await ctx.send("".join(random.choice([c.upper, c.lower])() for c in text or await self.get_last_content(ctx.message, ctx.channel)))
 
     @commands.command(hidden=True, name="z.")
     async def zdot(self, ctx):

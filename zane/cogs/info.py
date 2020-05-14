@@ -14,29 +14,6 @@ class Info(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def insert_name(self, user: discord.User, name: str):
-        try:
-            await self.bot.db.execute("INSERT INTO nicks VALUES ($1, $2);", user.id, name)
-        except asyncpg.UniqueViolationError:
-            pass
-
-    @commands.Cog.listener()
-    async def on_user_update(self, before, after):
-        if before.name != after.name:
-            await self.insert_name(after, after.name)
-
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        if before.nick != after.nick and after.nick is not None:
-            await self.insert_name(after, after.nick)
-
-    @commands.command()
-    async def nicks(self, ctx, member: discord.Member = None):
-        member = member or ctx.author
-        records = await self.bot.db.fetch("SELECT * FROM nicks WHERE user_id = $1", member.id)
-        nicks = [record.get("nick") for record in records]
-        await ctx.send(f"Names logged for {member.display_name}: {', '.join(nicks)}")
-
     @commands.command()
     async def ping(self, ctx):
         choices = [
@@ -88,6 +65,15 @@ class Info(commands.Cog):
     async def about(self, ctx):
         await ctx.send("Created by linK#0001, source located at <https://github.com/ir-3/zane>.")
 
+    @commands.command(aliases=["support", "abuse", "request", "report"])
+    async def contact(self, ctx):
+        """
+        Contact my owner with requests or information.
+        """
+        await ctx.send("support@zane.4yc.pw\n"
+                       "Please include your userid if the request pertains to your account/information.\n"
+                       "https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-")
+
     @commands.command()
     async def avatar(self, ctx, member: discord.Member = None):
         member = member or ctx.author
@@ -119,6 +105,12 @@ class Info(commands.Cog):
         raw = json.dumps(resp, indent=4).replace("```", "\u200b`\u200b`\u200b`")
         await ctx.send("```json\n" + raw + "```")
 
+    # @raw.command()
+    # async def guild(self, ctx):
+    #     resp = await self.bot.http.get_guild(ctx.guild.id)
+    #     raw = json.dumps(resp, indent=4).replace("```", "\u200b`\u200b`\u200b`")
+    #
+    #     await ctx.send("")
 
 def setup(bot):
     bot.add_cog(Info(bot))
