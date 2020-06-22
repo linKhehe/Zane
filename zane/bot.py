@@ -36,13 +36,16 @@ class Zane(commands.AutoShardedBot):
         zane.logger.info("Disconnected from Discord.")
 
     async def on_ready(self):
-        zane.logger.info("Now accepting commands.")
+        zane.logger.info("The bot is now ready.")
 
     async def on_guild_join(self, guild):
         zane.logger.info(f"Joined a new guild, (Name: {guild.name}, Members: {len(guild.members)})")
 
     async def on_guild_remove(self, guild):
         zane.logger.info(f"Left a guild, (Name: {guild.name}, Members: {len(guild.members)})")
+
+    async def on_command(self, ctx):
+        zane.logger.debug(f"Command invoked with {ctx.message.content} {repr(ctx.message)}")
 
     @classmethod
     def from_config(cls, config):
