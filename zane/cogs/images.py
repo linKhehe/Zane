@@ -1,5 +1,6 @@
 import aiohttp
 import io
+from time import perf_counter
 
 import discord
 from discord.ext import commands
@@ -10,8 +11,6 @@ import zane.imageops as imageops
 
 class Images(commands.Cog):
 
-    # All the commands that need to be created, these must also be names
-    # of attributes of the imageops library
     COMMANDS = {
         "magic": {"help": "Content-aware-scale an image."},
         "deepfry": {"help": "Deepfry an image."},
@@ -35,6 +34,22 @@ class Images(commands.Cog):
         "arc": {"help": "Arc an image."}
     }
 
+    NUMBERS = {
+        "1": "1️⃣",
+        "2": "2️⃣",
+        "3": "3️⃣",
+        "4": "4️⃣",
+        "5": "5️⃣",
+        "6": "6️⃣",
+        "7": "7️⃣",
+        "8": "8️⃣",
+        "9": "9️⃣",
+        "0": "0️⃣",
+        "m": "🇲",
+        "s": "🇸",
+        ".": "⏺️"
+    }
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -47,6 +62,9 @@ class Images(commands.Cog):
             zane.logger.debug(f"Registering command {name}")
 
             @commands.command(name=name, **kwargs)
+            @commands.cooldown(1, 1, type=commands.BucketType.user)
+            @commands.cooldown(5, 5, type=commands.BucketType.guild)
+            @self.reacts_with_time
             @self.requires_image
             async def callback(ctx, member: discord.Member = None):
                 image = await getattr(imageops, ctx.command.name)(ctx.image)
@@ -54,7 +72,7 @@ class Images(commands.Cog):
                     fp=image,
                     filename="generated.png"
                 )
-                await ctx.send(file=file)
+                return await ctx.send(file=file)
 
             self.bot.add_command(callback)
 
@@ -62,6 +80,7 @@ class Images(commands.Cog):
 
     async def create_session(self, *args, **kwargs):
         self.session = aiohttp.ClientSession(*args, **kwargs)
+        zane.logger.info("Image cog session created.")
 
     async def read_image(self, url: str):
         async with self.session.get(url) as get:
@@ -84,8 +103,22 @@ class Images(commands.Cog):
 
         return wrapper
 
+    def reacts_with_time(self, func):
+        async def wrapper(ctx, *args, **kwargs):
+            start = perf_counter()
+            await func(ctx, *args, **kwargs)
+            end = perf_counter()
+
+            reactions = [self.NUMBERS[e] for e in f"{round(end - start, 1)}s"]
+
+            for reaction in reactions:
+                await ctx.message.add_reaction(reaction)
+
+        return wrapper
+
     def cog_unload(self):
         self.bot.loop.create_task(self.session.close())
+        zane.logger.info("Image cog session closed.")
 
 
 def setup(bot):
