@@ -1,4 +1,5 @@
-from .imageops import *
+from zane.imageops.decorators import *
+from zane.imageops.manipulation import *
 
 __author__ = "Liam (ir-3) H."
 __version__ = "0.1"
