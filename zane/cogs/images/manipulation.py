@@ -1,35 +1,37 @@
-import os
-
+import matplotlib.pyplot as plt
 import numpy as np
 import skimage
 import skimage.filters
+from skimage.feature import hog as hog_image
 from skimage.exposure import rescale_intensity
 from skimage.color.adapt_rgb import adapt_rgb, each_channel
-from wand.image import Image
 from wand.color import Color
 
-from .decorators import manipulation_numpy, manipulation_wand
+from .enums import Library
+from .decorators import manipulation, executor
 
 
-@manipulation_wand
-def magic(img):
-    img.liquid_rescale(
-        width=int(img.width * 0.5),
-        height=int(img.height * 0.5),
+@executor
+@manipulation(Library.Wand)
+def magic(image):
+    image.liquid_rescale(
+        width=int(image.width * 0.4),
+        height=int(image.height * 0.4),
         delta_x=1,
         rigidity=0
     )
-    img.liquid_rescale(
-        width=int(img.width * 1.6),
-        height=int(img.height * 1.6),
+    image.liquid_rescale(
+        width=int(image.width * 1.7),
+        height=int(image.height * 1.7),
         delta_x=2,
         rigidity=0
     )
 
-    return img
+    return image
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def deepfry(img):
     img.format = "jpeg"
     img.compression_quality = 1
@@ -38,7 +40,8 @@ def deepfry(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def invert(img):
     img.alpha_channel = False
     img.negate()
@@ -46,21 +49,24 @@ def invert(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def desat(img, threshold: int = 1):
     img.modulate(saturation=100 - (threshold * 50))
 
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def sat(img, threshold: int = 1):
     img.modulate(saturation=100 + (threshold * 50))
 
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def noise(img):
     img = img.fx("""iso=32; rone=rand(); rtwo=rand(); \
 myn=sqrt(-2*ln(rone))*cos(2*Pi*rtwo); myntwo=sqrt(-2*ln(rtwo))* \
@@ -70,7 +76,8 @@ channel(4.28,3.86,6.68,0)/255; max(0,p+pnoise)""")
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def concave(img):
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
@@ -79,7 +86,8 @@ def concave(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def convex(img):
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
@@ -88,7 +96,8 @@ def convex(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def floor(img):
     x, y = img.size
 
@@ -111,14 +120,16 @@ def floor(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def blur(img):
     img.blur(0, 5)
 
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def vaporwave(img):
     img.alpha_channel = False
     img.function('sinusoid', [3, -90, 0.2, 0.7])
@@ -127,7 +138,8 @@ def vaporwave(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def emboss(img):
     img.transform_colorspace('gray')
     img.emboss(radius=3, sigma=50)
@@ -135,7 +147,8 @@ def emboss(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def edge(img):
     img.alpha_channel = False
     img.transform_colorspace('gray')
@@ -144,7 +157,8 @@ def edge(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def bend(img):
     img.alpha_channel = False
     img.virtual_pixel = "transparent"
@@ -153,21 +167,24 @@ def bend(img):
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def posterize(img):
     img.posterize(2)
 
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def grayscale(img):
     img.transform_colorspace('gray')
 
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def lsd(img):
     img.liquid_rescale(
         width=int(img.width * 0.5),
@@ -189,72 +206,29 @@ def lsd(img):
     return img
 
 
-@manipulation_wand
-def gay(img):
-    if os.name == 'nt':
-        slash = "\\"
-    else:
-        slash = "/"
-    with Image(filename=f"{os.path.dirname(os.path.realpath(__file__))}{slash}image_assets{slash}gay.jpg") as gay:
-        img.transform_colorspace("gray")
-        img.transform_colorspace("rgb")
-        gay.transparentize(.50)
-        gay.sample(img.width, img.height)
-        img.composite(gay, 0, 0)
-    return img
-
-
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def swirl(img):
     img.swirl(200)
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def polaroid(img):
     img.polaroid()
     return img
 
 
-@manipulation_wand
+@executor
+@manipulation(Library.Wand)
 def arc(img):
     img.virtual_pixel = "tile"
     img.distort("arc", (360,))
     return img
 
-
-@manipulation_numpy
-def ascii_art(img: np.ndarray):
-    ascii_characters = {
-        0: " ", 1: ".", 2: "'", 3: "`",
-        4: "^", 5: "\"", 6: ",", 7: ":",
-        8: ";", 9: "I", 10: "1", 11: "!",
-        12: "i", 13: ">", 14: "<", 15: "~",
-        16: "+", 17: "?", 18: "]", 19: "[",
-        20: "}", 21: "{", 22: "]", 23: "[",
-        24: "|", 25: "/", 26: "\\", 27: "t",
-        28: "x", 29: "n", 30: "u", 31: "v",
-        32: "z", 33: "X", 34: "Y", 35: "U",
-        36: "J", 37: "C", 38: "L", 39: "Q",
-        40: "0", 41: "O", 42: "Z", 43: "#",
-        44: "M", 45: "W", 46: "&", 47: "8",
-        48: "%", 49: "B", 50: "@", 51: "@"
-    }
-
-    ascii_art = ""
-
-    for i_row in range(0, img.shape[0], 2):
-        row = img[i_row]
-        ascii_art += "\n"
-        for col in row:
-            avg = int(col[0]) + int(col[1]) + int(col[2])
-            avg = int(avg / 3)
-            ascii_art += ascii_characters[int(avg / 5)]
-
-    return ascii_art
-
-
-@manipulation_numpy
+@executor
+@manipulation(Library.Numpy)
 def sobel(img):
     @adapt_rgb(each_channel)
     def _sobel_each(image):
@@ -262,7 +236,8 @@ def sobel(img):
     return rescale_intensity(255 - _sobel_each(img) * 255)
 
 
-@manipulation_numpy
+@executor
+@manipulation(Library.Numpy)
 def shuffle(img):
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
@@ -272,7 +247,8 @@ def shuffle(img):
     return img.reshape(shape)
 
 
-@manipulation_numpy
+@executor
+@manipulation(Library.Numpy)
 def sort(img):
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
@@ -280,3 +256,11 @@ def sort(img):
     img.sort(0)
 
     return img.reshape(shape)
+
+
+@executor
+@manipulation(Library.Numpy, cmap=plt.cm.get_cmap("hot"))
+def hog(img):
+    _, img = hog_image(img, orientations=8, pixels_per_cell=(8, 8),
+                       cells_per_block=(1, 1), visualize=True, multichannel=True)
+    return img
