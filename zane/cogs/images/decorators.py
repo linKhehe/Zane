@@ -1,3 +1,4 @@
+from collections import namedtuple
 import io
 
 import matplotlib.pyplot as plt
@@ -5,6 +6,15 @@ from wand.image import Image
 import skimage.io
 
 from .enums import Library
+
+
+ImageIO = namedtuple(
+    "ImageIO",
+    [
+        "input",
+        "output"
+    ]
+)
 
 
 def _wand_in(image_bytes):
@@ -39,24 +49,26 @@ def _numpy_out(arr, cmap=None):
     return image_bytes
 
 
-image_io = {
-    "wand_in": _wand_in, "wand_out": _wand_out,
-    "numpy_in": _numpy_in, "numpy_out": _numpy_out
+image_ios = {
+    "wand": ImageIO(input=_wand_in, output=_wand_out),
+    "numpy": ImageIO(input=_numpy_in, output=_numpy_out)
 }
 
 
 def manipulation(library: Library, cmap=None):
     def decorator(function):
         def wrapper(images, *args, **kwargs):
+            image_io = image_ios.get(library.value)
+
             if isinstance(images, list):
-                images = [image_io[library.value + "_in"](image_bytes) for image_bytes in images]
+                images = [image_io.input(image_bytes) for image_bytes in images]
                 images = function(images, *args, **kwargs)
-                return [image_io[library.value + "_out"](image, cmap=cmap) for image in images]
+                return [image_io.output(image, cmap=cmap) for image in images]
             else:
                 image = images
-                image = image_io[library.value + "_in"](image)
+                image = image_io.input(image)
                 image = function(image, *args, **kwargs)
-                return image_io[library.value + "_out"](image, cmap=cmap)
+                return image_io.output(image, cmap=cmap)
         return wrapper
     return decorator
 
