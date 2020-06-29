@@ -77,4 +77,3 @@ def executor(function):
     def decorator(*args, loop=None, **kwargs):
         return loop.run_in_executor(None, function, *args, **kwargs)
     return decorator
-

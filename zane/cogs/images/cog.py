@@ -1,4 +1,5 @@
 import io
+import time
 
 import aiohttp
 import discord
@@ -35,17 +36,52 @@ class Images(commands.Cog):
             "polaroid": {"help": "Polaroid picture printer go brrrr."},
             "arc": {"help": "Arc an image."},
             "hog": {"help": "this does something true"},
+            "cube": {"help": "command in testing"}
         }
 
         for k, v in image_commands.items():
             @commands.command(name=k, **v)
             async def callback(ctx, *, member: discord.Member = None):
-                member = member or ctx.author
                 function = getattr(manipulation, ctx.command.name)
-                avatar = await self.read_image(member.avatar_url_as(format="png").__str__())
-                image = await function(avatar, loop=self.bot.loop)
-                await ctx.send(file=discord.File(image, f"{ctx.command.name}.png"))
+
+                attachment = bool(ctx.message.attachments)
+                if attachment:
+                    title = f"Message Attachment"
+                    link = ctx.message.jump_url
+                    image_url = ctx.message.attachments[0].url
+                else:
+                    title = str(member or ctx.author)
+                    link = None
+                    image_url = (member or ctx.author).avatar_url_as(format="png").__str__()
+
+                raw_image = await self.read_image(image_url)
+
+                process_time, image = await self.timer(function(raw_image, loop=self.bot.loop))
+
+                embed = discord.Embed(
+                    title=title,
+                    link=link,
+                    color=self.bot.color
+                ).set_image(
+                    url=f"attachment://{ctx.command.name}.png"
+                ).set_footer(
+                    text=f"Requested by {ctx.author} | Processed in {round(process_time * 1000, 3)}ms",
+                    icon_url=ctx.author.avatar_url_as(format="png", size=64).__str__()
+                )
+
+                await ctx.send(
+                    embed=embed,
+                    file=discord.File(image, filename=f"{ctx.command.name}.png")
+                )
+
             self.bot.add_command(callback)
+
+    @staticmethod
+    async def timer(function):
+        start = time.perf_counter()
+        result = await function
+        end = time.perf_counter()
+        return end - start, result
 
     async def read_image(self, url: str):
         if self.session is None:

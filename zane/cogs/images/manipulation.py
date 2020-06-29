@@ -6,6 +6,7 @@ from skimage.feature import hog as hog_image
 from skimage.exposure import rescale_intensity
 from skimage.color.adapt_rgb import adapt_rgb, each_channel
 from wand.color import Color
+from wand.image import Image
 
 from .enums import Library
 from .decorators import manipulation, executor
@@ -264,3 +265,42 @@ def hog(img):
     _, img = hog_image(img, orientations=8, pixels_per_cell=(8, 8),
                        cells_per_block=(1, 1), visualize=True, multichannel=True)
     return img
+
+
+def _iso(image):
+    image.resize(860, 860)
+    image.shear(background="rgba(0,0,0,0)", x=30)
+    return image
+
+
+# noinspection PyTypeChecker
+@executor
+@manipulation(Library.Wand)
+def cube(image: Image):
+    def s(x):
+        return int(x / 2)
+
+    image.resize(s(1000), s(860))
+
+    image1 = image
+    image2 = Image(image1)
+
+    out = Image(width=s(3000), height=s(860) * 3)
+    out.format = "png"
+
+    image1.shear(background=Color("rgba(0,0,0,0)"), x=-30)
+    image1.rotate(-30)
+    out.composite(image1, left=s(500), top=0 + s(117))
+    image1.close()
+
+    image2.shear(background="rgba(0,0,0,0)", x=30)
+    image2.rotate(-30)
+    image3 = Image(image2)
+    out.composite(image2, left=s(1000) - s(68), top=s(860))
+    image2.close()
+
+    image3.flip()
+    out.composite(image3, left=0 + s(68), top=s(860))
+    image3.close()
+
+    return out
