@@ -8,12 +8,12 @@ from skimage.color.adapt_rgb import adapt_rgb, each_channel
 from wand.color import Color
 from wand.image import Image
 
-from .enums import Library
+from .image_managers import *
 from .decorators import manipulation, executor
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def magic(image):
     image.liquid_rescale(
         width=int(image.width * 0.4),
@@ -32,7 +32,7 @@ def magic(image):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def deepfry(img):
     img.format = "jpeg"
     img.compression_quality = 1
@@ -42,7 +42,7 @@ def deepfry(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def invert(img):
     img.alpha_channel = False
     img.negate()
@@ -51,7 +51,7 @@ def invert(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def desat(img, threshold: int = 1):
     img.modulate(saturation=100 - (threshold * 50))
 
@@ -59,7 +59,7 @@ def desat(img, threshold: int = 1):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def sat(img, threshold: int = 1):
     img.modulate(saturation=100 + (threshold * 50))
 
@@ -67,7 +67,7 @@ def sat(img, threshold: int = 1):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def noise(img):
     img = img.fx("""iso=32; rone=rand(); rtwo=rand(); \
 myn=sqrt(-2*ln(rone))*cos(2*Pi*rtwo); myntwo=sqrt(-2*ln(rtwo))* \
@@ -78,7 +78,7 @@ channel(4.28,3.86,6.68,0)/255; max(0,p+pnoise)""")
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def concave(img):
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
@@ -88,7 +88,7 @@ def concave(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def convex(img):
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
@@ -98,7 +98,7 @@ def convex(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def floor(img):
     x, y = img.size
 
@@ -122,7 +122,7 @@ def floor(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def blur(img):
     img.blur(0, 5)
 
@@ -130,7 +130,7 @@ def blur(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def vaporwave(img):
     img.alpha_channel = False
     img.function('sinusoid', [3, -90, 0.2, 0.7])
@@ -140,7 +140,7 @@ def vaporwave(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def emboss(img):
     img.transform_colorspace('gray')
     img.emboss(radius=3, sigma=50)
@@ -149,7 +149,7 @@ def emboss(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def edge(img):
     img.alpha_channel = False
     img.transform_colorspace('gray')
@@ -159,7 +159,7 @@ def edge(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def bend(img):
     img.alpha_channel = False
     img.virtual_pixel = "transparent"
@@ -169,7 +169,7 @@ def bend(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def posterize(img):
     img.posterize(2)
 
@@ -177,7 +177,7 @@ def posterize(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def grayscale(img):
     img.transform_colorspace('gray')
 
@@ -185,7 +185,7 @@ def grayscale(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def lsd(img):
     img.liquid_rescale(
         width=int(img.width * 0.5),
@@ -208,28 +208,28 @@ def lsd(img):
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def swirl(img):
     img.swirl(200)
     return img
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def polaroid(img):
     img.polaroid()
     return img
 
 
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def arc(img):
     img.virtual_pixel = "tile"
     img.distort("arc", (360,))
     return img
 
 @executor
-@manipulation(Library.Numpy)
+@manipulation(Numpy)
 def sobel(img):
     @adapt_rgb(each_channel)
     def _sobel_each(image):
@@ -238,7 +238,7 @@ def sobel(img):
 
 
 @executor
-@manipulation(Library.Numpy)
+@manipulation(Numpy)
 def shuffle(img):
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
@@ -249,7 +249,7 @@ def shuffle(img):
 
 
 @executor
-@manipulation(Library.Numpy)
+@manipulation(Numpy)
 def sort(img):
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
@@ -260,47 +260,43 @@ def sort(img):
 
 
 @executor
-@manipulation(Library.Numpy, cmap=plt.cm.get_cmap("hot"))
+@manipulation(Numpy, cmap=plt.cm.get_cmap("hot"))
 def hog(img):
     _, img = hog_image(img, orientations=8, pixels_per_cell=(8, 8),
                        cells_per_block=(1, 1), visualize=True, multichannel=True)
     return img
 
 
-def _iso(image):
-    image.resize(860, 860)
-    image.shear(background="rgba(0,0,0,0)", x=30)
-    return image
-
-
 # noinspection PyTypeChecker
 @executor
-@manipulation(Library.Wand)
+@manipulation(Wand)
 def cube(image: Image):
     def s(x):
         return int(x / 2)
 
     image.resize(s(1000), s(860))
+    image.format = "png"
+    image.alpha_channel = True
 
     image1 = image
     image2 = Image(image1)
 
-    out = Image(width=s(3000), height=s(860) * 3)
+    out = Image(width=s(3000 - 450), height=s(860 - 100) * 3)
     out.format = "png"
 
     image1.shear(background=Color("rgba(0,0,0,0)"), x=-30)
     image1.rotate(-30)
-    out.composite(image1, left=s(500), top=0 + s(117))
+    out.composite(image1, left=s(500 - 250), top=s(0 - 230) + s(117))
     image1.close()
 
     image2.shear(background="rgba(0,0,0,0)", x=30)
     image2.rotate(-30)
     image3 = Image(image2)
-    out.composite(image2, left=s(1000) - s(68), top=s(860))
+    out.composite(image2, left=s(1000 - 250) - s(68), top=s(860 - 230))
     image2.close()
 
     image3.flip()
-    out.composite(image3, left=0 + s(68), top=s(860))
+    out.composite(image3, left=s(0 - 250) + s(68), top=s(860 - 230))
     image3.close()
 
     return out

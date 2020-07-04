@@ -1,5 +1,6 @@
 import io
 import time
+import typing
 
 import aiohttp
 import discord
@@ -41,18 +42,24 @@ class Images(commands.Cog):
 
         for k, v in image_commands.items():
             @commands.command(name=k, **v)
-            async def callback(ctx, *, member: discord.Member = None):
+            # @self.typing
+            async def callback(ctx, *, member: typing.Union[discord.Member, discord.PartialEmoji] = None):
                 function = getattr(manipulation, ctx.command.name)
 
                 attachment = bool(ctx.message.attachments)
-                if attachment:
-                    title = f"Message Attachment"
-                    link = ctx.message.jump_url
-                    image_url = ctx.message.attachments[0].url
+                if isinstance(member, discord.PartialEmoji):
+                    title = f"Emoji {member.name}"
+                    url = member.url.__str__()
+                    image_url = member.url.__str__()
                 else:
-                    title = str(member or ctx.author)
-                    link = None
-                    image_url = (member or ctx.author).avatar_url_as(format="png").__str__()
+                    if attachment:
+                        title = f"Message Attachment"
+                        url = ctx.message.jump_url
+                        image_url = ctx.message.attachments[0].url
+                    else:
+                        title = str(member or ctx.author)
+                        url = None
+                        image_url = (member or ctx.author).avatar_url_as(format="png").__str__()
 
                 raw_image = await self.read_image(image_url)
 
@@ -60,7 +67,7 @@ class Images(commands.Cog):
 
                 embed = discord.Embed(
                     title=title,
-                    link=link,
+                    url=url,
                     color=self.bot.color
                 ).set_image(
                     url=f"attachment://{ctx.command.name}.png"
@@ -75,6 +82,13 @@ class Images(commands.Cog):
                 )
 
             self.bot.add_command(callback)
+
+    @staticmethod
+    def typing(function):
+        async def decorator(ctx, *args, **kwargs):
+            async with ctx.typing():
+                return await function(ctx, *args, **kwargs)
+        return decorator
 
     @staticmethod
     async def timer(function):
