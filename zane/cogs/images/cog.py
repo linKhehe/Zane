@@ -5,6 +5,7 @@ import typing
 import aiohttp
 import discord
 from discord.ext import commands
+from wand.exceptions import MissingDelegateError
 
 from . import manipulation
 
@@ -29,7 +30,6 @@ class Images(commands.Cog):
             "grayscale": {"help": "Greyscale an image."},
             "bend": {"help": "Bend an image."},
             "edge": {"help": "Amplify the edges within an image."},
-            "gay": {"help": "Make an image rainbow."},
             "sort": {"help": "Sort the colors in an image."},
             "sobel": {"help": "View an image through a sobel color filter."},
             "shuffle": {"help": "Shuffle the pixels of an image."},
@@ -42,8 +42,7 @@ class Images(commands.Cog):
 
         for k, v in image_commands.items():
             @commands.command(name=k, **v)
-            # @self.typing
-            async def callback(ctx, *, member: typing.Union[discord.Member, discord.PartialEmoji] = None):
+            async def callback(_, ctx, *, member: typing.Union[discord.Member, discord.PartialEmoji] = None):
                 function = getattr(manipulation, ctx.command.name)
 
                 attachment = bool(ctx.message.attachments)
@@ -63,7 +62,13 @@ class Images(commands.Cog):
 
                 raw_image = await self.read_image(image_url)
 
-                process_time, image = await self.timer(function(raw_image, loop=self.bot.loop))
+                if raw_image.__sizeof__() > 40_000_000:
+                    return await ctx.send("File is too large.")
+
+                try:
+                    process_time, image = await self.timer(function(raw_image, loop=self.bot.loop))
+                except MissingDelegateError:
+                    return await ctx.send("Invalid file format.")
 
                 embed = discord.Embed(
                     title=title,
@@ -81,14 +86,13 @@ class Images(commands.Cog):
                     file=discord.File(image, filename=f"{ctx.command.name}.png")
                 )
 
+            callback.cog = self
             self.bot.add_command(callback)
 
-    @staticmethod
-    def typing(function):
-        async def decorator(ctx, *args, **kwargs):
-            async with ctx.typing():
-                return await function(ctx, *args, **kwargs)
-        return decorator
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.BadUnionArgument):
+            return await ctx.send(f"{ctx.command.name.capitalize()} only takes members and guild-emoji as arguments.")
+        raise error
 
     @staticmethod
     async def timer(function):

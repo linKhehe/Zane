@@ -1,3 +1,4 @@
+import random
 from traceback import print_exc
 
 from discord.ext import commands
@@ -12,10 +13,13 @@ class Zane(commands.AutoShardedBot):
 
         self.token = kwargs.pop("token")
         self.runtime_cogs = kwargs.pop("cogs")
-        self.color = kwargs.pop("color")
         super().__init__(*args, **kwargs)
 
         zane.logger.info("Zane initialized.")
+
+    @property
+    def color(self):
+        return random.randint(0, 16_777_215)
 
     def run(self, *args, **kwargs):
         zane.logger.info("The blocking run is starting")

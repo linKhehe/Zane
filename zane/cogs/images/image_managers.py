@@ -28,21 +28,16 @@ class Wand(ImageManager):
     @staticmethod
     def input(image_bytes, *args, **kwargs) -> Image:
         image = Image(blob=image_bytes.getvalue())
+        print(image.format)
         image_bytes.close()
         return image
 
     @staticmethod
     def output(image_object, *args, **kwargs) -> io.BytesIO:
         image_bytes = io.BytesIO()
+        print(image_object.format)
         image_object.save(image_bytes)
-        with Image(blob=image_bytes.getvalue()) as out_image:
-            image_bytes.close()
-            out_image.format = image_object.format
-            image_object.close()
-
-            image_bytes = io.BytesIO()
-            out_image.save(image_bytes)
-            image_bytes.seek(0)
+        image_bytes.seek(0)
         return image_bytes
 
 

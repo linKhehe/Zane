@@ -137,4 +137,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-/config.py
+/example_config.py

@@ -276,7 +276,7 @@ def cube(image: Image):
 
     image.resize(s(1000), s(860))
     image.format = "png"
-    image.alpha_channel = True
+    image.alpha_channel = 'opaque'
 
     image1 = image
     image2 = Image(image1)
@@ -284,7 +284,7 @@ def cube(image: Image):
     out = Image(width=s(3000 - 450), height=s(860 - 100) * 3)
     out.format = "png"
 
-    image1.shear(background=Color("rgba(0,0,0,0)"), x=-30)
+    image1.shear(background=Color("none"), x=-30)
     image1.rotate(-30)
     out.composite(image1, left=s(500 - 250), top=s(0 - 230) + s(117))
     image1.close()
