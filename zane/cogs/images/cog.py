@@ -16,49 +16,56 @@ class Images(commands.Cog):
         self.bot = bot
         self.session = None
 
-        image_commands = {
-            "magic": {"help": "Content-aware-scale an image."},
-            "deepfry": {"help": "Deepfry an image."},
-            "emboss": {"help": "Emboss an image."},
-            "vaporwave": {"help": "Vvaappoorrwwaavvee an image."},
-            "floor": {"help": "Make an image the floor."},
-            "concave": {"help": "View an image through a concave lens."},
-            "convex": {"help": "View an image through a convex lens."},
-            "invert": {"help": "Invert the colors of an image."},
-            "lsd": {"help": "View an image through an LSD trip."},
-            "posterize": {"help": "Posterize an image."},
-            "grayscale": {"help": "Greyscale an image."},
-            "bend": {"help": "Bend an image."},
-            "edge": {"help": "Amplify the edges within an image."},
-            "sort": {"help": "Sort the colors in an image."},
-            "sobel": {"help": "View an image through a sobel color filter."},
-            "shuffle": {"help": "Shuffle the pixels of an image."},
-            "swirl": {"help": "Give an image a swirley."},
-            "polaroid": {"help": "Polaroid picture printer go brrrr."},
-            "arc": {"help": "Arc an image."},
-            "hog": {"help": "this does something true"},
-            "cube": {"help": "command in testing"}
-        }
+        # image_commands = {
+        #     "magic": {"help": ""},
+        #     "deepfry": {"help": ""},
+        #     "emboss": {"help": ""},
+        #     "vaporwave": {"help": ""},
+        #     "floor": {"help": ""},
+        #     "concave": {"help": ""},
+        #     "convex": {"help": "View an image through a convex lens."},
+        #     "invert": {"help": "Invert the colors of an image."},
+        #     "lsd": {"help": "View an image through an LSD trip."},
+        #     "posterize": {"help": "Posterize an image."},
+        #     "grayscale": {"help": "Greyscale an image."},
+        #     "bend": {"help": "Bend an image."},
+        #     "edge": {"help": "Amplify the edges within an image."},
+        #     "sort": {"help": "Sort the colors in an image."},
+        #     "sobel": {"help": "View an image through a sobel color filter."},
+        #     "shuffle": {"help": "Shuffle the pixels of an image."},
+        #     "swirl": {"help": "Give an image a swirley."},
+        #     "polaroid": {"help": "Polaroid picture printer go brrrr."},
+        #     "arc": {"help": "Arc an image."},
+        #     "hog": {"help": "this does something true"},
+        #     "cube": {"help": "command in testing"}
+        # }
 
-        for k, v in image_commands.items():
-            @commands.command(name=k, **v)
-            async def callback(_, ctx, *, member: typing.Union[discord.Member, discord.PartialEmoji] = None):
+        for f in [getattr(manipulation, f) for f in manipulation.__all__]:
+            @commands.command(name=f.__name__, help=f.__doc__)
+            async def callback(_, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
                 function = getattr(manipulation, ctx.command.name)
 
-                attachment = bool(ctx.message.attachments)
-                if isinstance(member, discord.PartialEmoji):
-                    title = f"Emoji {member.name}"
-                    url = member.url.__str__()
-                    image_url = member.url.__str__()
+                if isinstance(member_or_emoji, discord.PartialEmoji):
+                    embed = discord.Embed(
+                        title=f"Emoji {member_or_emoji.name}",
+                        url=member_or_emoji.url.__str__(),
+                        color=self.bot.color
+                    )
+                    image_url = member_or_emoji.url.__str__()
                 else:
-                    if attachment:
-                        title = f"Message Attachment"
-                        url = ctx.message.jump_url
+                    if ctx.message.attachments:
+                        embed = discord.Embed(
+                            title=f"Message Attachment",
+                            url=ctx.message.jump_url,
+                            color=self.bot.color
+                        )
                         image_url = ctx.message.attachments[0].url
                     else:
-                        title = str(member or ctx.author)
-                        url = None
-                        image_url = (member or ctx.author).avatar_url_as(format="png").__str__()
+                        embed = discord.Embed(
+                            title=str(member_or_emoji or ctx.author),
+                            color=self.bot.color
+                        )
+                        image_url = (member_or_emoji or ctx.author).avatar_url_as(format="png").__str__()
 
                 raw_image = await self.read_image(image_url)
 
@@ -67,14 +74,12 @@ class Images(commands.Cog):
 
                 try:
                     process_time, image = await self.timer(function(raw_image, loop=self.bot.loop))
-                except MissingDelegateError:
+                except (MissingDelegateError, ValueError):
                     return await ctx.send("Invalid file format.")
 
-                embed = discord.Embed(
-                    title=title,
-                    url=url,
-                    color=self.bot.color
-                ).set_image(
+                raw_image.close()
+
+                embed.set_image(
                     url=f"attachment://{ctx.command.name}.png"
                 ).set_footer(
                     text=f"Requested by {ctx.author} | Processed in {round(process_time * 1000, 3)}ms",

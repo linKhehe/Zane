@@ -28,14 +28,12 @@ class Wand(ImageManager):
     @staticmethod
     def input(image_bytes, *args, **kwargs) -> Image:
         image = Image(blob=image_bytes.getvalue())
-        print(image.format)
         image_bytes.close()
         return image
 
     @staticmethod
     def output(image_object, *args, **kwargs) -> io.BytesIO:
         image_bytes = io.BytesIO()
-        print(image_object.format)
         image_object.save(image_bytes)
         image_bytes.seek(0)
         return image_bytes
@@ -46,7 +44,9 @@ class Numpy(ImageManager):
     @staticmethod
     def input(image_bytes, *args, **kwargs) -> np.ndarray:
         image_bytes.seek(0)
-        return skimage.io.imread(image_bytes, plugin='matplotlib')
+        arr = skimage.io.imread(image_bytes, plugin='matplotlib')
+        image_bytes.close()
+        return arr
 
     @staticmethod
     def output(arr, *args, **kwargs) -> io.BytesIO:

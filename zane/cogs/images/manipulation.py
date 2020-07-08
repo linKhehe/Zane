@@ -12,9 +12,19 @@ from .image_managers import *
 from .decorators import manipulation, executor
 
 
+__all__ = ("magic", "deepfry", "invert", "concave",
+           "convex", "floor", "vaporwave", "emboss",
+           "edge", "bend", "posterize", "grayscale",
+           "lsd", "swirl", 'polaroid', "arc",
+           "sobel", "shuffle", "sort", "hog",
+           "cube"
+)
+
+
 @executor
 @manipulation(Wand)
 def magic(image):
+    """Content-aware-scale an image."""
     image.liquid_rescale(
         width=int(image.width * 0.4),
         height=int(image.height * 0.4),
@@ -34,6 +44,7 @@ def magic(image):
 @executor
 @manipulation(Wand)
 def deepfry(img):
+    """Compress and saturate in image."""
     img.format = "jpeg"
     img.compression_quality = 1
     img.modulate(saturation=700)
@@ -44,6 +55,7 @@ def deepfry(img):
 @executor
 @manipulation(Wand)
 def invert(img):
+    """Invert an image."""
     img.alpha_channel = False
     img.negate()
 
@@ -52,34 +64,8 @@ def invert(img):
 
 @executor
 @manipulation(Wand)
-def desat(img, threshold: int = 1):
-    img.modulate(saturation=100 - (threshold * 50))
-
-    return img
-
-
-@executor
-@manipulation(Wand)
-def sat(img, threshold: int = 1):
-    img.modulate(saturation=100 + (threshold * 50))
-
-    return img
-
-
-@executor
-@manipulation(Wand)
-def noise(img):
-    img = img.fx("""iso=32; rone=rand(); rtwo=rand(); \
-myn=sqrt(-2*ln(rone))*cos(2*Pi*rtwo); myntwo=sqrt(-2*ln(rtwo))* \
-cos(2*Pi*rone); pnoise=sqrt(p)*myn*sqrt(iso)* \
-channel(4.28,3.86,6.68,0)/255; max(0,p+pnoise)""")
-
-    return img
-
-
-@executor
-@manipulation(Wand)
 def concave(img):
+    """View an image through a concave lens."""
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
     img.distort(method="barrel", arguments=[-.5, 0.0, 0.0, 1])
@@ -90,6 +76,7 @@ def concave(img):
 @executor
 @manipulation(Wand)
 def convex(img):
+    """View an image through a convex lens."""
     img.virtual_pixel = "transparent"
     img.background_color = Color("white")
     img.distort(method="barrel", arguments=[1, 0, 0, 1])
@@ -100,6 +87,7 @@ def convex(img):
 @executor
 @manipulation(Wand)
 def floor(img):
+    """Make an image the floor."""
     x, y = img.size
 
     img.alpha_channel = False
@@ -123,15 +111,8 @@ def floor(img):
 
 @executor
 @manipulation(Wand)
-def blur(img):
-    img.blur(0, 5)
-
-    return img
-
-
-@executor
-@manipulation(Wand)
 def vaporwave(img):
+    """Vvaappoorrwwaavvee an image."""
     img.alpha_channel = False
     img.function('sinusoid', [3, -90, 0.2, 0.7])
     img.modulate(saturation=25, brightness=75)
@@ -142,6 +123,7 @@ def vaporwave(img):
 @executor
 @manipulation(Wand)
 def emboss(img):
+    """Emboss an image."""
     img.transform_colorspace('gray')
     img.emboss(radius=3, sigma=50)
 
@@ -151,6 +133,7 @@ def emboss(img):
 @executor
 @manipulation(Wand)
 def edge(img):
+    """Make an image edgy."""
     img.alpha_channel = False
     img.transform_colorspace('gray')
     img.edge(2)
@@ -161,6 +144,7 @@ def edge(img):
 @executor
 @manipulation(Wand)
 def bend(img):
+    """Bend the image like its paper."""
     img.alpha_channel = False
     img.virtual_pixel = "transparent"
     img.distort(method="plane_2_cylinder", arguments=[90])
@@ -171,6 +155,7 @@ def bend(img):
 @executor
 @manipulation(Wand)
 def posterize(img):
+    """Posterize the image."""
     img.posterize(2)
 
     return img
@@ -179,6 +164,7 @@ def posterize(img):
 @executor
 @manipulation(Wand)
 def grayscale(img):
+    """Put the image in grayscale."""
     img.transform_colorspace('gray')
 
     return img
@@ -187,6 +173,7 @@ def grayscale(img):
 @executor
 @manipulation(Wand)
 def lsd(img):
+    """Take a tab then look at the image."""
     img.liquid_rescale(
         width=int(img.width * 0.5),
         height=int(img.height * 0.5),
@@ -210,6 +197,7 @@ def lsd(img):
 @executor
 @manipulation(Wand)
 def swirl(img):
+    """Swirl an image."""
     img.swirl(200)
     return img
 
@@ -217,6 +205,7 @@ def swirl(img):
 @executor
 @manipulation(Wand)
 def polaroid(img):
+    """Give an image a polaroidesque frame."""
     img.polaroid()
     return img
 
@@ -224,6 +213,7 @@ def polaroid(img):
 @executor
 @manipulation(Wand)
 def arc(img):
+    """Arc an image."""
     img.virtual_pixel = "tile"
     img.distort("arc", (360,))
     return img
@@ -231,6 +221,7 @@ def arc(img):
 @executor
 @manipulation(Numpy)
 def sobel(img):
+    """Put a sobel filter on the image."""
     @adapt_rgb(each_channel)
     def _sobel_each(image):
         return skimage.filters.sobel(image)
@@ -240,6 +231,7 @@ def sobel(img):
 @executor
 @manipulation(Numpy)
 def shuffle(img):
+    """Shuffle the pixels randomly."""
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
 
@@ -251,6 +243,7 @@ def shuffle(img):
 @executor
 @manipulation(Numpy)
 def sort(img):
+    """Sort the pixels in the image."""
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
 
@@ -262,6 +255,7 @@ def sort(img):
 @executor
 @manipulation(Numpy, cmap=plt.cm.get_cmap("hot"))
 def hog(img):
+    """Histogram of oriented gradients."""
     _, img = hog_image(img, orientations=8, pixels_per_cell=(8, 8),
                        cells_per_block=(1, 1), visualize=True, multichannel=True)
     return img
@@ -271,6 +265,7 @@ def hog(img):
 @executor
 @manipulation(Wand)
 def cube(image: Image):
+    """Make a 3D cube out of the image."""
     def s(x):
         return int(x / 2)
 
