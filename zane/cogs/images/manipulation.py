@@ -267,7 +267,7 @@ def hog(img):
 def cube(image: Image):
     """Make a 3D cube out of the image."""
     def s(x):
-        return int(x / 2)
+        return int(x / 3)
 
     image.resize(s(1000), s(860))
     image.format = "png"
@@ -281,17 +281,33 @@ def cube(image: Image):
 
     image1.shear(background=Color("none"), x=-30)
     image1.rotate(-30)
-    out.composite(image1, left=s(500 - 250), top=s(0 - 230) + s(117))
+    out.composite(image1, left=s(500 - 250), top=s(0 - 230) + s(118))
     image1.close()
 
     image2.shear(background="rgba(0,0,0,0)", x=30)
     image2.rotate(-30)
     image3 = Image(image2)
-    out.composite(image2, left=s(1000 - 250) - s(68), top=s(860 - 230))
+    out.composite(image2, left=s(1000 - 250) - s(72), top=s(860 - 230))
     image2.close()
 
     image3.flip()
     out.composite(image3, left=s(0 - 250) + s(68), top=s(860 - 230))
     image3.close()
 
+    out.crop(left=80, top=40, right=665, bottom=710)
+
     return out
+
+
+@executor
+@manipulation(Wand)
+def rotate_right(image: Image):
+    image.rotate(90)
+    return image
+
+
+@executor
+@manipulation(Wand)
+def rotate_left(image: Image):
+    image.rotate(-90)
+    return image
