@@ -4,10 +4,11 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from wand.image import Image
+import PIL.Image
 import skimage.io
 
 
-__all__ = ('Wand', 'Numpy')
+__all__ = ('Wand', 'Numpy', 'Pillow', 'ImageManager')
 
 
 class ImageManager(metaclass=abc.ABCMeta):
@@ -39,14 +40,27 @@ class Wand(ImageManager):
         return image_bytes
 
 
+class Pillow(ImageManager):
+
+    @staticmethod
+    def input(image_bytes, *args, **kwargs) -> PIL.Image:
+        image = PIL.Image.open(image_bytes)
+        return image
+
+    @staticmethod
+    def output(image_object, *args, **kwargs) -> io.BytesIO:
+        image_bytes = io.BytesIO()
+        image_object.save(image_bytes, format="PNG")
+        image_bytes.seek(0)
+        return image_bytes
+
+
 class Numpy(ImageManager):
 
     @staticmethod
     def input(image_bytes, *args, **kwargs) -> np.ndarray:
-        image_bytes.seek(0)
-        arr = skimage.io.imread(image_bytes, plugin='matplotlib')
-        image_bytes.close()
-        return arr
+        image = PIL.Image.open(image_bytes)
+        return np.asarray(image)
 
     @staticmethod
     def output(arr, *args, **kwargs) -> io.BytesIO:

@@ -7,3 +7,6 @@ matplotlib~=3.2.2
 scikit-image~=0.17.2
 Wand~=0.6.1
 numpy~=1.19.0
+Pillow~=7.1.2
+scikit-learn~=0.23.1
+humanize~=2.4.0

@@ -1,3 +1,4 @@
+import asyncio
 import io
 import time
 import typing
@@ -5,7 +6,7 @@ import typing
 import aiohttp
 import discord
 from discord.ext import commands
-from wand.exceptions import MissingDelegateError
+from wand.exceptions import MissingDelegateError, BlobError, BlobFatalError
 
 from . import manipulation
 from . editor import Editor
@@ -17,47 +18,24 @@ class Images(commands.Cog):
         self.bot = bot
         self.session = None
 
-        for f in [getattr(manipulation, f) for f in manipulation.__all__]:
-            @commands.command(name=f.__name__, help=f.__doc__)
-            async def callback(_, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
+        def callback_builder(name: str):
+            async def function(_, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
                 async with ctx.typing():
-                    function = getattr(manipulation, ctx.command.name)
-
-                    if isinstance(member_or_emoji, discord.PartialEmoji):
-                        embed = discord.Embed(
-                            title=f"Emoji {member_or_emoji.name}",
-                            url=member_or_emoji.url.__str__(),
-                            color=self.bot.color
-                        )
-                        image_url = member_or_emoji.url.__str__()
-                    else:
-                        if ctx.message.attachments:
-                            embed = discord.Embed(
-                                title=f"Message Attachment",
-                                url=ctx.message.jump_url,
-                                color=self.bot.color
-                            )
-                            image_url = ctx.message.attachments[0].url
-                        else:
-                            embed = discord.Embed(
-                                title=str(member_or_emoji or ctx.author),
-                                color=self.bot.color
-                            )
-                            image_url = (member_or_emoji or ctx.author).avatar_url_as(format="png").__str__()
-
-                    raw_image = await self.read_image(image_url)
+                    raw_image = await self.get_image_contextually(ctx, member_or_emoji)
 
                     if raw_image.__sizeof__() > 40_000_000:
                         return await ctx.send("File is too large.")
 
                     try:
-                        process_time, image = await self.timer(function(raw_image, loop=self.bot.loop))
-                    except (MissingDelegateError, ValueError):
+                        process_time, image = await self.timer(getattr(manipulation, function.__name__)(raw_image, loop=self.bot.loop))
+                    except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
                         return await ctx.send("Invalid file format.")
 
                     raw_image.close()
 
-                    embed.set_image(
+                    embed = discord.Embed(
+                        color=self.bot.color
+                    ).set_image(
                         url=f"attachment://{ctx.command.name}.png"
                     ).set_footer(
                         text=f"Requested by {ctx.author} | Processed in {round(process_time * 1000, 3)}ms",
@@ -68,29 +46,72 @@ class Images(commands.Cog):
                         embed=embed,
                         file=discord.File(image, filename=f"{ctx.command.name}.png")
                     )
+            function.__name__ = name
+            function.__doc__ = getattr(manipulation, name).__doc__
+            return function
 
-            callback.cog = self
-            self.bot.add_command(callback)
-
-    async def get_image_contextually(self, ctx, member_or_emoji):
-        if ctx.message.attachments:
-            url = ctx.message.attachments[0].url
-        else:
-            if isinstance(member_or_emoji, discord.Member):
-                url = str(member_or_emoji.avatar_url_as(format="png"))
-            elif isinstance(member_or_emoji, discord.PartialEmoji):
-                url = str(member_or_emoji.url)
-            else:
-                url = str(ctx.author.avatar_url_as(format="png"))
-
-        return await self.read_image(url)
+        for manipulation_function in manipulation.__all__:
+            callback = callback_builder(manipulation_function)
+            command = commands.Command(callback)
+            command.cog = self
+            self.bot.add_command(command)
 
     @commands.command()
-    async def edit(self, ctx, *,
-                   member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
-        image = await self.get_image_contextually(ctx, member_or_emoji)
-        menu = Editor(self.upload_channel, image, self.bot.loop)
-        await menu.start(ctx)
+    async def edit(self, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
+        """Interactive image editor"""
+        raw_image = await self.get_image_contextually(ctx, member_or_emoji)
+
+        if raw_image.__sizeof__() > 40_000_000:
+            return await ctx.send("File is too large.")
+
+        try:
+            menu = Editor(self.upload_channel, raw_image, self.bot.loop, delete_message_after=True, timeout=15.0)
+            await menu.start(ctx)
+        except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
+            await ctx.send("Invalid file format.")
+        except asyncio.TimeoutError:
+            await ctx.send(f"Timeout on Editor {ctx.author}.")
+
+    @commands.command()
+    async def ascii(self, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
+        """Make ascii art out of an image."""
+        async with ctx.typing():
+            raw_image = await self.get_image_contextually(ctx, member_or_emoji)
+
+            if raw_image.__sizeof__() > 40_000_000:
+                return await ctx.send("File is too large.")
+
+            try:
+                process_time, art = await self.timer(manipulation.ascii(raw_image, loop=self.bot.loop))
+            except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
+                return await ctx.send("Invalid file format.")
+
+            try:
+                async with self.session.post("https://mystb.in/documents", data=art) as post:
+                    key = (await post.json())["key"]
+                await ctx.send(f"{ctx.author.mention} https://mystb.in/{key}.txt in {round(process_time * 1000, 3)}ms")
+            except KeyError:
+                await ctx.send("Sorry. I was able to caclulate that image but it was too large for my text-host.")
+                return
+            except aiohttp.ContentTypeError:
+                await ctx.send("Sorry. I was able to caclulate that image but it was too large for my text-host.")
+                return
+
+    @commands.command()
+    async def discord_ascii(self, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
+        """Make ascii art that fits in a discord message."""
+        async with ctx.typing():
+            raw_image = await self.get_image_contextually(ctx, member_or_emoji)
+
+            if raw_image.__sizeof__() > 40_000_000:
+                return await ctx.send("File is too large.")
+
+            try:
+                process_time, art = await self.timer(manipulation.discord_ascii(raw_image, loop=self.bot.loop))
+            except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
+                return await ctx.send("Invalid file format.")
+
+            await ctx.send(f">>> ```{art}```")
 
     @property
     def upload_channel(self):
@@ -115,3 +136,16 @@ class Images(commands.Cog):
             image = io.BytesIO(await response.read())
             image.seek(0)
         return image
+
+    async def get_image_contextually(self, ctx, member_or_emoji):
+        if ctx.message.attachments:
+            url = ctx.message.attachments[0].url
+        else:
+            if isinstance(member_or_emoji, discord.Member):
+                url = str(member_or_emoji.avatar_url_as(format="png"))
+            elif isinstance(member_or_emoji, discord.PartialEmoji):
+                url = str(member_or_emoji.url)
+            else:
+                url = str(ctx.author.avatar_url_as(format="png"))
+
+        return await self.read_image(url)

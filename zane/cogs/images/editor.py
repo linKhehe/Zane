@@ -3,7 +3,6 @@ import collections
 import io
 
 import discord
-import typing
 from discord.ext import menus
 from discord.ext import commands
 
@@ -25,6 +24,7 @@ class Editor(menus.Menu):
 
     BUTTON_MAP = {
         "\N{REGIONAL INDICATOR SYMBOL LETTER M}": manipulation.magic,
+        "\N{REGIONAL INDICATOR SYMBOL LETTER D}": manipulation.deepfry,
         "\N{RIGHTWARDS ARROW WITH HOOK}": manipulation.rotate_right,
         "\N{LEFTWARDS ARROW WITH HOOK}": manipulation.rotate_left
     }
@@ -39,18 +39,19 @@ class Editor(menus.Menu):
         self.image = initial_image
         self.loop = loop
 
-        def callback_builder(name):
-            async def callback(self: Editor, payload):
-                manipulation_function = getattr(manipulation, callback.__name__)
+        self.embed_message = None
 
-                image = await manipulation_function(self.image, loop=loop)
+        def callback_builder(name: str):
+            async def callback(self: Editor, payload):
+                function = getattr(manipulation, callback.__name__)
+
+                image = await function(self.image, loop=loop)
                 image_url = await self.upload(image)
                 self.image = image
 
                 self.actions.append(Action(image, image_url))
 
-                await self.message.edit(embed=self.create_embed(image_url))
-
+                await self.embed_message.edit(embed=self.create_embed(image_url))
             callback.__name__ = name
             return callback
 
@@ -60,10 +61,13 @@ class Editor(menus.Menu):
                 callback_builder(manipulation_function.__name__)
             ))
 
-    async def send_initial_message(self, ctx: commands.Context, channel) -> discord.Message:
+    async def send_initial_message(self, ctx: commands.Context, channel: discord.TextChannel) -> discord.Message:
         image_url = await self.upload(self.image)
         self.add_action(self.image, image_url)
-        return await ctx.send(embed=self.create_embed(image_url))
+
+        message = await ctx.send("\N{ZERO WIDTH SPACE}")
+        self.embed_message = await ctx.send(embed=self.create_embed(image_url))
+        return message
 
     @menus.button("\N{CROSS MARK}")
     async def exit(self, payload):
@@ -79,7 +83,7 @@ class Editor(menus.Menu):
 
         action = self.actions[-1]
         self.image = action.image
-        await self.message.edit(embed=self.create_embed(action.image_url))
+        await self.embed_message.edit(embed=self.create_embed(action.image_url))
 
     async def alert(self, alert_message: str, delay: float = 5.0):
         await self.message.edit(content=alert_message)

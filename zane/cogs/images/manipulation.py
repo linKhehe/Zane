@@ -1,16 +1,18 @@
+import io
+
 import matplotlib.pyplot as plt
 import numpy as np
 import skimage
 import skimage.filters
-from skimage.feature import hog as hog_image
-from skimage.exposure import rescale_intensity
+from sklearn.preprocessing import minmax_scale
 from skimage.color.adapt_rgb import adapt_rgb, each_channel
+from skimage.exposure import rescale_intensity
+from skimage.feature import hog as hog_image
 from wand.color import Color
 from wand.image import Image
 
-from .image_managers import *
 from .decorators import manipulation, executor
-
+from .image_managers import *
 
 __all__ = ("magic", "deepfry", "invert", "concave",
            "convex", "floor", "vaporwave", "emboss",
@@ -247,7 +249,7 @@ def sort(img):
     shape = img.shape
     img = img.reshape((img.shape[0] * img.shape[1], img.shape[2]))
 
-    img.sort(0)
+    img = np.sort(img, 0)
 
     return img.reshape(shape)
 
@@ -297,6 +299,50 @@ def cube(image: Image):
     out.crop(left=80, top=40, right=665, bottom=710)
 
     return out
+
+
+ascii_characters = {
+    0: " ", 1: ".", 2: "'", 3: "'",
+    4: "^", 5: "\"", 6: ",", 7: ":",
+    8: ";", 9: "I", 10: "1", 11: "!",
+    12: "i", 13: ">", 14: "<", 15: "~",
+    16: "+", 17: "?", 18: "]", 19: "[",
+    20: "}", 21: "{", 22: "]", 23: "[",
+    24: "|", 25: "/", 26: "\\", 27: "t",
+    28: "x", 29: "n", 30: "u", 31: "v",
+    32: "z", 33: "X", 34: "Y", 35: "U",
+    36: "J", 37: "C", 38: "L", 39: "Q",
+    40: "0", 41: "O", 42: "Z", 43: "#",
+    44: "M", 45: "W", 46: "&", 47: "8",
+    48: "%", 49: "B", 50: "@", 51: "@"
+}
+
+
+def create_ascii_art(array: np.ndarray) -> str:
+    art = str()
+    for i in range(0, array.shape[0], 2):
+        row = array[i]
+        art += "\n"
+        for col in row:
+            r, g, b = col[0:3]
+            luminance = 0.299 * r + 0.587 * g + 0.114 * b
+            art += ascii_characters[int(luminance / 5)]
+    return art
+
+
+@executor
+def ascii(image: io.BytesIO):
+    array = Numpy.input(image)
+    return create_ascii_art(array)
+
+
+@executor
+def discord_ascii(image: io.BytesIO):
+    image = Pillow.input(image)
+    image = image.resize((62, 62))
+    array = np.asarray(image)
+
+    return create_ascii_art(array)
 
 
 @executor
