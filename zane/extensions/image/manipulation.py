@@ -1,10 +1,9 @@
 import io
 
-import matplotlib.pyplot as plt
 import numpy as np
 import skimage
 import skimage.filters
-from sklearn.preprocessing import minmax_scale
+import skimage.transform
 from skimage.color.adapt_rgb import adapt_rgb, each_channel
 from skimage.exposure import rescale_intensity
 from skimage.feature import hog as hog_image
@@ -12,14 +11,15 @@ from wand.color import Color
 from wand.image import Image
 
 from .decorators import manipulation, executor
-from .image_managers import *
+from .io import *
 
-__all__ = ("magic", "deepfry", "invert", "concave",
-           "convex", "floor", "vaporwave", "emboss",
-           "edge", "bend", "posterize", "grayscale",
-           "lsd", "swirl", 'polaroid', "arc",
-           "sobel", "shuffle", "sort", "hog",
-           "cube"
+__all__ = (
+    "magic", "deepfry", "invert", "concave",
+    "convex", "floor", "vaporwave", "emboss",
+    "edge", "bend", "posterize", "grayscale",
+    "lsd", "swirl", 'polaroid', "arc",
+    "sobel", "shuffle", "sort", "hog",
+    "cube"
 )
 
 
@@ -220,6 +220,7 @@ def arc(img):
     img.distort("arc", (360,))
     return img
 
+
 @executor
 @manipulation(Numpy)
 def sobel(img):
@@ -255,7 +256,7 @@ def sort(img):
 
 
 @executor
-@manipulation(Numpy, cmap=plt.cm.get_cmap("hot"))
+@manipulation(Numpy)
 def hog(img):
     """Histogram of oriented gradients."""
     _, img = hog_image(img, orientations=8, pixels_per_cell=(8, 8),
@@ -331,8 +332,8 @@ def create_ascii_art(array: np.ndarray) -> str:
 
 
 @executor
-def ascii(image: io.BytesIO):
-    array = Numpy.input(image)
+@manipulation(AsciiArt)
+def ascii(array: np.ndarray):
     return create_ascii_art(array)
 
 
@@ -343,17 +344,3 @@ def discord_ascii(image: io.BytesIO):
     array = np.asarray(image)
 
     return create_ascii_art(array)
-
-
-@executor
-@manipulation(Wand)
-def rotate_right(image: Image):
-    image.rotate(90)
-    return image
-
-
-@executor
-@manipulation(Wand)
-def rotate_left(image: Image):
-    image.rotate(-90)
-    return image

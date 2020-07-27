@@ -14,9 +14,6 @@ class Zane(commands.AutoShardedBot):
         self.token = kwargs.pop("token")
         self.runtime_cogs = kwargs.pop("cogs")
 
-        self.redis_url = kwargs.pop("redis_url")
-        self.redis_pass = kwargs.pop("redis_pass")
-
         super().__init__(*args, **kwargs)
 
         zane.logger.info("Zane initialized.")
@@ -54,11 +51,6 @@ class Zane(commands.AutoShardedBot):
 
     async def on_command(self, ctx):
         zane.logger.debug(f"Command invoked with {ctx.message.content} {repr(ctx.message)}")
-
-    async def on_message(self, message):
-        if message.author.id == 246938839720001536:
-            return
-        await self.process_commands(message)
 
     @classmethod
     def from_config(cls, config):

@@ -1,6 +1,6 @@
 import logging
 
-import zane.utils.logging
-from zane.bot import Zane
+import zane.logger
+from .bot import Zane
 
-logger = zane.utils.logging.create_logger("Zane", logging.DEBUG)
+logger = zane.logger.create_logger("Zane", logging.DEBUG)

@@ -1,4 +1,3 @@
-import asyncio
 import io
 import time
 import typing
@@ -9,7 +8,6 @@ from discord.ext import commands
 from wand.exceptions import MissingDelegateError, BlobError, BlobFatalError
 
 from . import manipulation
-from . editor import Editor
 
 
 class Images(commands.Cog):
@@ -27,7 +25,7 @@ class Images(commands.Cog):
                         return await ctx.send("File is too large.")
 
                     try:
-                        process_time, image = await self.timer(getattr(manipulation, function.__name__)(raw_image, loop=self.bot.loop))
+                        process_time, image = await self.timer(getattr(manipulation, function.__name__)(raw_image))
                     except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
                         return await ctx.send("Invalid file format.")
 
@@ -46,6 +44,7 @@ class Images(commands.Cog):
                         embed=embed,
                         file=discord.File(image, filename=f"{ctx.command.name}.png")
                     )
+
             function.__name__ = name
             function.__doc__ = getattr(manipulation, name).__doc__
             return function
@@ -57,22 +56,6 @@ class Images(commands.Cog):
             self.bot.add_command(command)
 
     @commands.command()
-    async def edit(self, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
-        """Interactive image editor"""
-        raw_image = await self.get_image_contextually(ctx, member_or_emoji)
-
-        if raw_image.__sizeof__() > 40_000_000:
-            return await ctx.send("File is too large.")
-
-        try:
-            menu = Editor(self.upload_channel, raw_image, self.bot.loop, delete_message_after=True, timeout=15.0)
-            await menu.start(ctx)
-        except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
-            await ctx.send("Invalid file format.")
-        except asyncio.TimeoutError:
-            await ctx.send(f"Timeout on Editor {ctx.author}.")
-
-    @commands.command()
     async def ascii(self, ctx, *, member_or_emoji: typing.Union[discord.Member, discord.PartialEmoji] = None):
         """Make ascii art out of an image."""
         async with ctx.typing():
@@ -82,7 +65,7 @@ class Images(commands.Cog):
                 return await ctx.send("File is too large.")
 
             try:
-                process_time, art = await self.timer(manipulation.ascii(raw_image, loop=self.bot.loop))
+                process_time, art = await self.timer(manipulation.ascii(raw_image))
             except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
                 return await ctx.send("Invalid file format.")
 
@@ -107,7 +90,7 @@ class Images(commands.Cog):
                 return await ctx.send("File is too large.")
 
             try:
-                process_time, art = await self.timer(manipulation.discord_ascii(raw_image, loop=self.bot.loop))
+                process_time, art = await self.timer(manipulation.discord_ascii(raw_image))
             except (MissingDelegateError, ValueError, BlobError, BlobFatalError):
                 return await ctx.send("Invalid file format.")
 
